@@ -1,11 +1,24 @@
 Package: grdpg
 Type: Package
-Title: What the Package Does (Title Case)
+Title: (Generalized) Random Dot Product Graph
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Cong Mu
+Maintainer: Cong Mu <placid8889@gmail.com>
+Description: Generate and estimate (G)RDPG with observed covariates to model the networks.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 6.1.1
+Roxygen: list(markdown = TRUE)
+Imports: 
+    dplyr, 
+    mclust, 
+    igraph, 
+    graphstats, 
+    irlba, 
+    grid, 
+    ggplot2
+Suggests: 
+    devtools, 
+    knitr, 
+    rmarkdown
