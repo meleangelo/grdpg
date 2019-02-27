@@ -15,6 +15,9 @@
 
 
 getBlockCovariates <- function(covariates, clusters_cov) {
+  if (nrow(covariates) != length(clusters_cov)) {
+    stop("The number of rows in `covariates` should equal to the length of `clusters_cov` (both equal to the number of nodes).")
+  }
   covariates_block <- matrix(0, nrow = length(unique(clusters_cov)), ncol = ncol(covariates))
   for (k in 1:ncol(covariates_block)) {
     for (l in 1:nrow(covariates_block)) {

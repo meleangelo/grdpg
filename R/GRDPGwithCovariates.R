@@ -86,6 +86,22 @@
 
 
 GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod = 'GMM', dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, ...) {
+  if (nrow(A) != nrow(covariates) || ncol(A) != nrow(covariates)) {
+    stop("The number of rows/columns in `A` should equal to the number of rows in `covariates`.")
+  }
+  if (!(link %in% c('identity', 'logit'))) {
+    print("Unrecognized `link`, would use 'identity' by default.")
+  }
+  if (!(clusterMethod %in% c('GMM', 'kmeans'))) {
+    print("Unrecognized `clusterMethod`, would use 'GMM' by default.")
+  }
+  if (!(check %in% c('BF', 'Remove'))) {
+    print("Unrecognized `check`, would use 'BF' by default.")
+  }
+  if (clusterMethod == 'kmeans' && length(list(...)) < 1) {
+    stop("Need to provide `centers` if use kmeans.")
+  }
+
   result <- list()
 
   cat('\n\n', 'Embedding...')

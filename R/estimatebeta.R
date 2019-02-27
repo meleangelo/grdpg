@@ -19,6 +19,9 @@
 
 estimatebeta <- function(BXhat, cov, covariates_block) {
   covariates_block <- data.frame(covariates_block)
+  if (length(cov) != ncol(covariates_block)) {
+    stop("The length of `cov` should equal to the number of columns in `covariates_block` (both equal to the number of covariates).")
+  }
   betahats <- vector('list', ncol(covariates_block))
   model2 <- Mclust(diag(BXhat), ncol(BXhat)/prod(cov), verbose = FALSE)
   c <- getClusters(data.frame(model2$z))

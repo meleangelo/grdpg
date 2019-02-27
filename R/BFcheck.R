@@ -21,6 +21,9 @@
 
 
 BFcheck <- function(P, l = 0.0001, u = 0.9999) {
+  if (!is.numeric(P)) {
+    stop("Input need to be numeric.")
+  }
   P[P<=0] <- l
   P[P>=1] <- u
   return(P)

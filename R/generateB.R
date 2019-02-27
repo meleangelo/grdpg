@@ -41,6 +41,12 @@
 
 
 generateB <- function(latent, K, d, addCovariates, ...) {
+  if (nrow(latent) != d || ncol(latent) != K) {
+    stop("`latent` should be a d by K matrix.")
+  }
+  if (addCovariates && length(list(...)) != 2) {
+    stop("There should be two more parameters (`cov` and `beta`) if add covariates.")
+  }
   cov <- ifelse(addCovariates, list(...)[[1]], 1)
   X <- matrix(rep(latent[,1]), nrow = prod(cov), ncol = d, byrow = TRUE)
   for (k in 2:ncol(latent)) {

@@ -26,8 +26,22 @@
 
 
 generateA <- function(n, P, directed = FALSE, type = 'bernoulli', seed = 2019) {
+  if (n <= 0 || !is.numeric(n)) {
+    stop("`n` needs to be a positive number.")
+  }
+  if (!is.numeric(P)) {
+    stop("`P` needs to be numeric.")
+  }
+  if (n != ncol(P) || n != nrow(P)) {
+    stop("`n` should equal to the number of rows/columns in `P`.")
+  }
+  if (!(type %in% c('bernoulli', 'poisson'))) {
+    print("Unrecognized `type`, would use 'bernoulli' by default.")
+  }
   set.seed(seed)
-  if (type == 'bernoulli') {
+  if (type == 'poisson') {
+    A <- matrix(rpois(n*n,P), nrow = n)
+  } else {
     A <- matrix(rbinom(n*n,1,P), nrow = n)
   }
   if (!directed) {

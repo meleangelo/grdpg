@@ -19,6 +19,9 @@
 
 
 Removecheck <- function(P) {
+  if (!is.numeric(P)) {
+    stop("Input need to be numeric.")
+  }
   ind <- which(P<=0|P>=1, arr.ind = T)
   removed <- unique(c(ind[,1],ind[,2]))
   return(P[-removed,-removed])

@@ -18,6 +18,12 @@
 
 
 rotate <- function(Xhat, latent, K) {
+  if (ncol(Xhat) != nrow(latent)) {
+    stop("The number of columns in `Xhat` should equal to the number of rows in `latent`.")
+  }
+  if (ncol(latent) != K) {
+    stop("The number of columns in `latent` should equal to K.")
+  }
   model <- Mclust(Xhat, K, verbose = FALSE)
   means <- model$parameters$mean
   M <- svd(means %*% t(latent))

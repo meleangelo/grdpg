@@ -18,6 +18,12 @@
 getAwithoutCovariates <- function(A, betahat, covariates) {
   Aprime <- A
   covariates <- data.frame(covariates)
+  if (nrow(A) != nrow(covariates) || ncol(A) != nrow(covariates)) {
+    stop("The number of rows/columns in `A` should equal to the number of rows in `covariates`.")
+  }
+  if (length(betahat) != ncol(covariates)) {
+    stop("The length of `betahat` should equal to the number of columns in `covariates`.")
+  }
   for (k in 1:ncol(covariates)) {
     Beta <- matrix(0, nrow = nrow(A), ncol = ncol(A))
     for (i in 1:nrow(Beta)) {

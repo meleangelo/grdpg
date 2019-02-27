@@ -17,6 +17,9 @@
 
 
 getIpq <- function(s, d) {
+  if (length(s) < d) {
+    stop("The length of `s` should be greater than `d`.")
+  }
   p <- which(s<abs(s[length(s)]))[1]
   if (p > d) {
     Ipq <- diag(rep(1,d))

@@ -18,6 +18,9 @@
 
 
 dimselect <- function(s) {
+  if (!is.numeric(s)) {
+    stop("Input need to be numeric (a vector of ordered singular values).")
+  }
   d <- s
   p <- length(s)
   lq <- rep(0.0, p)

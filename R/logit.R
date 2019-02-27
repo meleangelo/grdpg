@@ -20,7 +20,7 @@
 
 
 logit <- function(p) {
-  if (any(p<= 0) | any(p >= 1)) {
+  if (any(p <= 0) | any(p >= 1)) {
     stop('All input need to lie between 0 and 1')
   }
   return(log(p/(1-p)))

@@ -53,6 +53,12 @@
 
 
 generateP <- function(latent, d, block_size, addCovariates, ...) {
+  if (nrow(latent) != d) {
+    stop("The number of rows in `latent` should equal to `d`.")
+  }
+  if (addCovariates && length(list(...)) != 2) {
+    stop("There should be two more parameters (`covariates` and `beta`) if add covariates.")
+  }
   X <- matrix(rep(latent[,1]), nrow = block_size[1], ncol = d, byrow = TRUE)
   for (k in 2:ncol(latent)) {
     X <- rbind(X, matrix(rep(latent[,k]), nrow = block_size[k], ncol = d, byrow = TRUE))
