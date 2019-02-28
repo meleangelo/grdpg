@@ -120,7 +120,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
       What <- logit(Removecheck(Qhat))
     }
     embedding2 <- embed(What, dmax, maxit = maxit)
-    s2 <- embeding2$D
+    s2 <- embedding2$D
     dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
     Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
     Ipq <- getIpq(temp$values, dhat2)

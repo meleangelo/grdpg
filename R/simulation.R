@@ -73,7 +73,11 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   cat('\n\n', 'Sampling...')
   B <- generateB(latent, K, d, addCovariates, cov, beta)
   P <- generateP(latent, d, block_size, addCovariates, covariates, beta)
-  A <- generateA(n, P)
+  if (link == 'logit') {
+    A <- generateA(n, sigmoid(P))
+  } else {
+    A <- generateA(n, P)
+  }
 
   ## Estimation
   result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, dmax, dhat, maxit, check, postAnalysis, plot)
