@@ -111,22 +111,24 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
   Ipq <- getIpq(temp$values, dhat)
 
-  if (link == 'logit') {
-    Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
-    Qhat <- Yhat %*% Ipq %*% t(Yhat)
-    if (check == 'BF') {
-      What <- logit(BFcheck(Qhat))
-    } else {
-      What <- logit(Removecheck(Qhat))
-    }
-    embedding2 <- embed(What, dmax, maxit = maxit)
-    s2 <- embedding2$D
-    dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
-    Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
-    Ipq <- getIpq(temp$values, dhat2)
-  } else {
-    Xhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
-  }
+  # if (link == 'logit') {
+  #   Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
+  #   Qhat <- Yhat %*% Ipq %*% t(Yhat)
+  #   if (check == 'BF') {
+  #     What <- logit(BFcheck(Qhat))
+  #   } else {
+  #     What <- logit(Removecheck(Qhat))
+  #   }
+  #   embedding2 <- embed(What, dmax, maxit = maxit)
+  #   s2 <- embedding2$D
+  #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
+  #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
+  #   Ipq <- getIpq(temp$values, dhat2)
+  # } else {
+  #   Xhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
+  # }
+
+  Xhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
   result$Xhat <- Xhat
   result$Ipq <- Ipq
 
@@ -136,6 +138,13 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     model <- Mclust(Xhat, verbose = FALSE)
     muhats <- model$parameters$mean
     BXhat <- t(muhats) %*% Ipq %*% muhats
+    if (link == 'logit') {
+      if (check == 'BF') {
+        BXhat <- logit(BFcheck(BXhat))
+      } else {
+        BXhat <- logit(Removecheck(BXhat))
+      }
+    }
     clusters_cov <- getClusters(data.frame(model$z))
     covariates_block <- getBlockCovariates(covariates, clusters_cov)
   } else {
@@ -143,6 +152,13 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     model <- kmeans(Xhat, centers)
     muhats <- model$centers
     BXhat <- muhats %*% Ipq %*% t(muhats)
+    if (link == 'logit') {
+      if (check == 'BF') {
+        BXhat <- logit(BFcheck(BXhat))
+      } else {
+        BXhat <- logit(Removecheck(BXhat))
+      }
+    }
     clusters_cov <- model$cluster
     covariates_block <- getBlockCovariates(covariates, clusters_cov)
   }
@@ -156,6 +172,13 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   if (postAnalysis) {
     cat('\n\n', 'Post Analysis...')
     if (link == 'logit') {
+      Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
+      Qhat <- Yhat %*% Ipq %*% t(Yhat)
+      if (check == 'BF') {
+        What <- logit(BFcheck(Qhat))
+      } else {
+        What <- logit(Removecheck(Qhat))
+      }
       Aprime <- getAwithoutCovariates(What, betahat, covariates)
     } else {
       Aprime <- getAwithoutCovariates(A, betahat, covariates)

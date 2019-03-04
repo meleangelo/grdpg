@@ -25,21 +25,25 @@ estimatebeta <- function(BXhat, cov, covariates_block) {
   betahats <- vector('list', ncol(covariates_block))
   model2 <- Mclust(diag(BXhat), ncol(BXhat)/prod(cov), verbose = FALSE)
   c <- getClusters(data.frame(model2$z))
-  for (i in 1:(nrow(BXhat)-1)) {
-    for (j in (i+1):ncol(BXhat)) {
-      for (k in 1:ncol(covariates_block)) {
-        if (c[i] == c[j] & covariates_block[i,k] != covariates_block[j,k]) {
-          temp <- setdiff(1:ncol(covariates_block),k)
-          ind <- c()
-          if (length(temp) > 0) {
-            for (l in temp) {
-              ind <- c(ind, covariates_block[i,l] == covariates_block[j,l])
+  for (i in 1:nrow(BXhat)) {
+    for (k in 1:ncol(covariates_block)) {
+      ind1 <- which(covariates_block[,k]==covariates_block[i,k])
+      ind2 <- which(covariates_block[,k]!=covariates_block[i,k])
+      for (l1 in ind1) {
+        for (l2 in ind2) {
+          if (c[l1] == c[l2]) {
+            temp <- setdiff(1:ncol(covariates_block), k)
+            ind <- c()
+            if (length(temp) > 0) {
+              for (l in temp) {
+                ind <- c(ind, covariates_block[l1,l] == covariates_block[l2,l])
+              }
+            } else {
+              ind <- TRUE
             }
-          } else {
-            ind <- TRUE
-          }
-          if (all(ind)) {
-            betahats[[k]] <- c(betahats[[k]], BXhat[i,i] - BXhat[i,j])
+            if (all(ind)) {
+              betahats[[k]] <- c(betahats[[k]], BXhat[i,l1] - BXhat[i,l2])
+            }
           }
         }
       }

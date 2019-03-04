@@ -47,14 +47,21 @@ generateB <- function(latent, K, d, addCovariates, ...) {
   if (addCovariates && length(list(...)) != 2) {
     stop("There should be two more parameters (`cov` and `beta`) if add covariates.")
   }
-  cov <- ifelse(addCovariates, list(...)[[1]], 1)
+  if (addCovariates) {
+    cov <- list(...)[[1]]
+    beta <- list(...)[[2]]
+    if (length(cov) != length(beta)) {
+      stop("The length of `cov` should equal to the length of `beta`.")
+    }
+  } else {
+    cov <- 1
+  }
   X <- matrix(rep(latent[,1]), nrow = prod(cov), ncol = d, byrow = TRUE)
   for (k in 2:ncol(latent)) {
     X <- rbind(X, matrix(rep(latent[,k]), nrow = prod(cov), ncol = d, byrow = TRUE))
   }
   B <- X %*% t(X)
   if (addCovariates) {
-    beta <- list(...)[[2]]
     for (k in 1:length(beta)) {
       Beta <- matrix(0, nrow = nrow(B), ncol = ncol(B))
       Z <- rep(1:cov[k], each = prod(cov[k:length(cov)])/cov[k], times = K*prod(cov[1:k])/cov[k])
