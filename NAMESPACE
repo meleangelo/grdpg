@@ -2,6 +2,7 @@
 
 export(BFcheck)
 export(GRDPGwithCovariates)
+export(GRDPGwithoutCovariates)
 export(Removecheck)
 export(dimselect)
 export(embed)

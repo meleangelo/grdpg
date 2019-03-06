@@ -28,6 +28,7 @@
 #' \item{\code{\link{estimatebeta}}}{Estimate beta (the effect of covariates).}
 #' \item{\code{\link{getAwithoutCovariates}}}{Get the adjacency matrix without the effect of covariates.}
 #' \item{\code{\link{getClusters}}}{Get the block label of each nodes according to the block assignment probability.}
+#' \item{\code{\link{GRDPGwithoutCovariates}}}{Estimate (Generalized) Random Dot Product Graph (GRDPG) without effect of covariates.}
 #' \item{\code{\link{GRDPGwithCovariates}}}{Estimate (Generalized) Random Dot Product Graph (GRDPG) with effect of covariates.}
 #' }
 #' \item{Visualization functions}
