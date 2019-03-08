@@ -9,13 +9,14 @@
 #' @param covariates Observed covariates. Should be a `n` by `c` matrix or dataframe where `n` is the number of nodes and `c` is the number of covariates.
 #' @param link Link function. Could be 'identity' (by default) or 'logit'.
 #' @param clusterMethod Method to cluster the estimated latent position. Could be 'GMM' (by default, Gaussian Mixture Model) or 'kmeans'.
+#' @param G `G` for \link[mclust]{Mclust} if \code{clusterMethod=='GMM'} or `centers` for \link[stats]{kmeans} if \code{clusterMethod=='kmeans'}. \code{G = 1:9} by default.
 #' @param dmax Maximal embeded dimension. 10 by default.
 #' @param dhat Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
 #' @param postAnalysis Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
-#' @param ... Additional parameters. For example, if \code{method=='kmeans'}, need to provide `centers` for \link[stats]{kmeans}.
+#' @param ... Additional parameters.
 #'
 #' @return A list containing the following:
 #' \describe{
@@ -90,7 +91,7 @@
 #' @export
 
 
-GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod = 'GMM', dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, ...) {
+GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, ...) {
   if (nrow(A) != nrow(covariates) || ncol(A) != nrow(covariates)) {
     stop("The number of rows/columns in `A` should equal to the number of rows in `covariates`.")
   }
@@ -103,9 +104,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   if (!(check %in% c('BF', 'Remove'))) {
     print("Unrecognized `check`, would use 'BF' by default.")
   }
-  if (clusterMethod == 'kmeans' && length(list(...)) < 1) {
-    stop("Need to provide `centers` if use kmeans.")
-  }
+
 
   result <- list()
 
@@ -140,7 +139,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   cat('\n\n', 'Estimating beta...')
   cov <- apply(covariates, 2, function(x) length(unique(x)))
   if (clusterMethod == 'GMM') {
-    model <- Mclust(Xhat, verbose = FALSE)
+    model <- Mclust(Xhat, G, verbose = FALSE)
     muhats <- model$parameters$mean
     BXhat <- t(muhats) %*% Ipq %*% muhats
     if (link == 'logit') {
@@ -153,7 +152,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     clusters_cov <- getClusters(data.frame(model$z))
     covariates_block <- getBlockCovariates(covariates, clusters_cov)
   } else {
-    centers <- list(...)[[1]]
+    centers <- max(G)
     model <- kmeans(Xhat, centers)
     muhats <- model$centers
     BXhat <- muhats %*% Ipq %*% t(muhats)
@@ -193,7 +192,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     dhatprime <- dimselect(sprime)$elbow
     Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
     if (clusterMethod == 'GMM') {
-      model2 <- Mclust(Xhatprime, verbose = FALSE)
+      model2 <- Mclust(Xhatprime, G, verbose = FALSE)
       clusters <- getClusters(data.frame(model2$z))
     } else {
       model2 <- kmeans(Xhatprime, centers)

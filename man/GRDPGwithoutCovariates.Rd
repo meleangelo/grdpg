@@ -5,7 +5,7 @@
 \title{(Generalized) Random Dot Product Graph without Covariates}
 \usage{
 GRDPGwithoutCovariates(A, link = "identity", clusterMethod = "GMM",
-  dmax = 10, dhat = NULL, maxit = 1000, check = "BF",
+  G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = "BF",
   plot = TRUE, ...)
 }
 \arguments{
@@ -14,6 +14,8 @@ GRDPGwithoutCovariates(A, link = "identity", clusterMethod = "GMM",
 \item{link}{Link function. Could be 'identity' (by default) or 'logit'.}
 
 \item{clusterMethod}{Method to cluster the estimated latent position. Could be 'GMM' (by default, Gaussian Mixture Model) or 'kmeans'.}
+
+\item{G}{\code{G} for \link[mclust]{Mclust} if \code{clusterMethod=='GMM'} or \code{centers} for \link[stats]{kmeans} if \code{clusterMethod=='kmeans'}. \code{G = 1:9} by default.}
 
 \item{dmax}{Maximal embeded dimension. 10 by default.}
 
@@ -25,7 +27,7 @@ GRDPGwithoutCovariates(A, link = "identity", clusterMethod = "GMM",
 
 \item{plot}{Whether to show scree plot and latent position. \code{TRUE} by default.}
 
-\item{...}{Additional parameters. For example, if \code{method=='kmeans'}, need to provide \code{centers} for \link[stats]{kmeans}.}
+\item{...}{Additional parameters.}
 }
 \value{
 A list containing the following:

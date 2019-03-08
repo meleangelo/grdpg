@@ -16,6 +16,7 @@
 #' @param covariates Observed covariates. Should be a `n` by `c` matrix or dataframe where `n` is the number of nodes and `c` is the number of covariates.
 #' @param link Link function. Could be 'identity' (by default) or 'logit'.
 #' @param clusterMethod Method to cluster the estimated latent position. Could be 'GMM' (by default, Gaussian Mixture Model) or 'kmeans'.
+#' @param G `G` for \link[mclust]{Mclust} if \code{clusterMethod=='GMM'} or `centers` for \link[stats]{kmeans} if \code{clusterMethod=='kmeans'}. \code{G = 1:9} by default.
 #' @param dmax Maximal embeded dimension. 10 by default.
 #' @param dhat Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
@@ -23,7 +24,7 @@
 #' @param postAnalysis Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
 #' @param seed Random seed for reproductivity. 2019 by default.
-#' @param ... Additional parameters. For example, if \code{method=='kmeans'}, need to provide `centers` for \link[stats]{kmeans}.
+#' @param ... Additional parameters.
 #'
 #' @examples
 #' ## Parameters
@@ -54,7 +55,7 @@
 #' @export
 
 
-simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
+simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
   cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
 
   ## Set Up
@@ -80,7 +81,7 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   }
 
   ## Estimation
-  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, dmax, dhat, maxit, check, postAnalysis, plot)
+  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, G, dmax, dhat, maxit, check, postAnalysis, plot)
 
   ## Visualization
   pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)

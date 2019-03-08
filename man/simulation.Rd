@@ -5,9 +5,9 @@
 \title{(Generalized) Random Dot Product Graph with Covariates}
 \usage{
 simulation(n, K, d, latent, block_size, beta, cov, block_size_cov,
-  covariates, link = "identity", clusterMethod = "GMM", dmax = 10,
-  dhat = NULL, maxit = 1000, check = "BF", postAnalysis = TRUE,
-  plot = TRUE, seed = 2019, ...)
+  covariates, link = "identity", clusterMethod = "GMM", G = 1:9,
+  dmax = 10, dhat = NULL, maxit = 1000, check = "BF",
+  postAnalysis = TRUE, plot = TRUE, seed = 2019, ...)
 }
 \arguments{
 \item{n}{Number of nodes.}
@@ -32,6 +32,8 @@ simulation(n, K, d, latent, block_size, beta, cov, block_size_cov,
 
 \item{clusterMethod}{Method to cluster the estimated latent position. Could be 'GMM' (by default, Gaussian Mixture Model) or 'kmeans'.}
 
+\item{G}{\code{G} for \link[mclust]{Mclust} if \code{clusterMethod=='GMM'} or \code{centers} for \link[stats]{kmeans} if \code{clusterMethod=='kmeans'}. \code{G = 1:9} by default.}
+
 \item{dmax}{Maximal embeded dimension. 10 by default.}
 
 \item{dhat}{Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.}
@@ -46,7 +48,7 @@ simulation(n, K, d, latent, block_size, beta, cov, block_size_cov,
 
 \item{seed}{Random seed for reproductivity. 2019 by default.}
 
-\item{...}{Additional parameters. For example, if \code{method=='kmeans'}, need to provide \code{centers} for \link[stats]{kmeans}.}
+\item{...}{Additional parameters.}
 }
 \description{
 Simulate and estimate (Generalized) Random Dot Product Graph (GRDPG) with effect of covariates.

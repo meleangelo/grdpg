@@ -8,12 +8,13 @@
 #' @param A An adjacency matrix.
 #' @param link Link function. Could be 'identity' (by default) or 'logit'.
 #' @param clusterMethod Method to cluster the estimated latent position. Could be 'GMM' (by default, Gaussian Mixture Model) or 'kmeans'.
+#' @param G `G` for \link[mclust]{Mclust} if \code{clusterMethod=='GMM'} or `centers` for \link[stats]{kmeans} if \code{clusterMethod=='kmeans'}. \code{G = 1:9} by default.
 #' @param dmax Maximal embeded dimension. 10 by default.
 #' @param dhat Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
-#' @param ... Additional parameters. For example, if \code{method=='kmeans'}, need to provide `centers` for \link[stats]{kmeans}.
+#' @param ... Additional parameters.
 #'
 #' @return A list containing the following:
 #' \describe{
@@ -65,7 +66,7 @@
 #' @export
 
 
-GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', plot = TRUE, ...) {
+GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', plot = TRUE, ...) {
   if (!(link %in% c('identity', 'logit'))) {
     print("Unrecognized `link`, would use 'identity' by default.")
   }
@@ -111,7 +112,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
 
   cat('\n\n', 'Estimating ...')
   if (clusterMethod == 'GMM') {
-    model <- Mclust(Xhat, verbose = FALSE)
+    model <- Mclust(Xhat, G, verbose = FALSE)
     muhats <- model$parameters$mean
     BXhat <- t(muhats) %*% Ipq %*% muhats
     if (link == 'logit') {
@@ -123,7 +124,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
     }
     clusters_cov <- getClusters(data.frame(model$z))
   } else {
-    centers <- list(...)[[1]]
+    centers <- max(G)
     model <- kmeans(Xhat, centers)
     muhats <- model$centers
     BXhat <- muhats %*% Ipq %*% t(muhats)
