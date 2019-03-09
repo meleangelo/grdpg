@@ -1,0 +1,349 @@
+require(dplyr)
+require(graphstats)
+require(mclust)
+require(ggplot2)
+
+
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+## B matrix
+generateBwithCovariate <- function(latent, beta, K, d) {
+  X <- matrix(rep(latent[,1]), nrow = cov, ncol = d, byrow = TRUE)
+  for (k in 2:ncol(latent)) {
+    X <- rbind(X, matrix(rep(latent[,k]), nrow = cov, ncol = d, byrow = TRUE))
+  }
+  
+  Z <- rep(c(1,-1), times = K)
+  ones=rep(1,times=K*2)
+  Beta <- beta*(Z %*% t(Z) + ones %*% t(ones))/2
+  B <- X %*% t(X) + Beta
+  return(B)
+}
+
+
+## P matrix
+generatePwithCovariate <- function(latent, beta, K, d, n, block_size, cov, covariates) {
+  X <- matrix(rep(latent[,1]), nrow = block_size[1], ncol = d, byrow = TRUE)
+  for (k in 2:ncol(latent)) {
+    X <- rbind(X, matrix(rep(latent[,k]), nrow = block_size[k], ncol = d, byrow = TRUE))
+  }
+  # Z <- rep(1:cov, each = n/(K*cov), times = K)
+  # Beta <- Z %*% t(Z)
+  Beta <- covariates %*% t(covariates)
+  Beta[Beta %in% (1:cov)^2] <- 1
+  Beta[!(Beta %in% (1:cov)^2)] <- 0
+  Beta <- Beta * beta
+  P <- X %*% t(X) + Beta
+  return(P)
+}
+
+
+## Generate adjacency matrix
+generateA <- function(n, P, seed) {
+  set.seed(seed)
+  A <- matrix(0, nrow = n, ncol = n)
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      A[i,j] <- rbinom(1, 1, P[i,j])
+    }
+  }
+  A <- A + t(A)
+  return(A)
+}
+
+
+## Get Ipq for GRDPG
+getIpq <- function(s, d) {
+  p <- which(s<abs(s[length(s)]))[1]
+  if (p > d) {
+    Ipq <- diag(rep(1,d))
+  } else {
+    Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+  }
+  return(Ipq)
+}
+
+
+## Estimate beta
+estimatebeta <- function(BXhat, cov) {
+  betahats <- c()
+  model2 <- Mclust(diag(BXhat), ncol(BXhat)/cov, verbose = FALSE)
+  c <- getClusters(model2)
+  for (i in 1:(ncol(BXhat)/cov)) {
+    ind <- which(c==i)
+    for (j in 1:(length(ind)-1)) {
+      betahats <- c(betahats, abs(BXhat[ind[j],]-BXhat[ind[j+1],]))
+    }
+  }
+  symbol <- ifelse(BXhat[1,1]-BXhat[1,which(c==c[1])[2]]>0, 1, -1)
+  betahat <- mean(betahats) * symbol
+  return(betahat)
+}
+
+
+## Remove the effect of covariates
+getAwithoutCovariate <- function(A, betahat, n, K, cov, covariates) {
+  # Z <- rep(1:cov, each = n/(K*cov), times = K)
+  # Beta <- Z %*% t(Z)
+  Beta <- covariates %*% t(covariates)
+  Beta[Beta %in% (1:cov)^2] <- 1
+  Beta[!(Beta %in% (1:cov)^2)] <- 0
+  Beta <- Beta * betahat
+  Aprime <- A - Beta
+  return(Aprime)
+}
+
+
+## Get the label of clusters
+getClusters <- function(model) {
+  block_assignment_probs <- data.frame(model$z)
+  block_assignment_probs <- mutate(block_assignment_probs, cluster = apply(block_assignment_probs, 1, which.max))
+  assignments <- block_assignment_probs$cluster
+  return(assignments)
+}
+
+
+## Rotate latent position to compare with the truth
+rotate <- function(Xhat, latent, K) {
+  model <- Mclust(Xhat, K, verbose = FALSE)
+  means <- model$parameters$mean
+  M <- svd(means %*% t(latent))
+  R <- M$u %*% t(M$v)
+  X_R <- Xhat %*% R
+  return(X_R)
+}
+
+
+## Simulation
+simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2018) {
+  
+  
+  cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
+  
+  ## Set Up
+  set.seed(seed)
+  blocks <- c()
+  for (k in 1:length(block_size)) {
+    blocks <- c(blocks, rep(k, block_size[k]))
+  }
+  blocks_cov <- c()
+  for (k in 1:length(block_size_cov)) {
+    blocks_cov <- c(blocks_cov, rep(k, block_size_cov[k]))
+  }
+  covariates <- c()
+  ind <- 1
+  for (k in 1:length(block_size_cov)) {
+    if(k %% cov == 0) {
+      ind <- 2
+    }
+    covariates <- c(covariates, rep(ind, block_size_cov[k]))
+    ind <- 1
+  }
+  B <- generateBwithCovariate(latent, beta, K, d)
+  P <- generatePwithCovariate(latent, beta, K, d, n, block_size, cov, covariates)
+  
+  cat('\n\n', 'Sampling...')
+  
+  
+  ## Sample Network
+  # g <- igraph::sample_sbm(n, B, block_size_cov)
+  # A <- as_adj(g)
+  
+  A <- generateA(n, P, seed)
+  
+  cat('\n\n', 'Embedding...')
+  
+  ptm <- proc.time()
+  
+  ## ASE
+  s <- gs.embed.ase(A, dmax)$D
+  dhat <- dim_select(s)
+  
+  
+  ## ??
+  if(dhat == 1) {
+    dhat <- dhat + 1
+  }
+  
+  t1 <- proc.time() - ptm
+  
+  ## Screeplot with Covariates
+  dat <- data.frame(s)
+  pp1 <- ggplot(dat, aes(x=1:dmax, y=s)) + geom_line() + geom_point()
+  pp1 <- pp1 + labs(title = 'Screeplot (with Covariates)', x = 'Rank', y = 'Singular Value')
+  print(pp1)
+  
+  ptm <- proc.time()
+  
+  ## Embed
+  embed <- gs.embed.ase(A, dhat)
+  Xhat <- embed$X %*% sqrt(diag(embed$D, nrow=dhat, ncol=dhat))
+  
+  t2 <- proc.time() - ptm
+  
+  ## Latent Position with Covariates
+  dat <- data.frame(Xhat, Blocks = as.factor(blocks), Covariate = as.factor(covariates))
+  pp2 <- ggplot(dat) + geom_point(aes(x=X1, y=X2, color=Blocks, shape=Covariate), alpha = 0.5)
+  pp2 <- pp2 + labs(title = 'Latent Position (with Covariates)', x = 'PC1', y = 'PC2')
+  print(pp2)
+  
+  cat('\n\n', 'Estimating beta...')
+  
+  ptm <- proc.time()
+  
+  ## Estiamte beta
+  model <- Mclust(Xhat, verbose = FALSE) 
+  muhats <- model$parameters$mean
+  
+  temp <- eigen(A)
+  Ipq <- getIpq(temp$values, dhat)
+  BXhat <- t(muhats) %*% Ipq %*% muhats
+  
+  betahat <- estimatebeta(BXhat, cov) 
+  
+  t3 <- proc.time() - ptm
+  
+
+  
+  
+  ## Post Analysis
+  Aprime <- getAwithoutCovariate(A, betahat, n, K, cov, covariates)
+  
+  sprime <- gs.embed.ase(Aprime, dmax)$D
+  dhatprime <- dim_select(sprime)
+  
+  dat <- data.frame(sprime)
+  pp3 <- ggplot(dat, aes(x=1:dmax, y=sprime)) + geom_line() + geom_point()
+  pp3 <- pp3 + labs(title = 'Screeplot (without Covariates)', x = 'Rank', y = 'Singular Value')
+  print(pp3)
+  
+  ## For visualization
+  if(d == 2 & dhatprime == 1) {
+    dhatprime <- dhatprime + 1
+  }
+  
+  ## For visualization
+  if(d == 1 & dhatprime > 2) {
+    dhatprime <- 1
+  }
+  
+  embedprime <- gs.embed.ase(Aprime, dhatprime)
+  Xhatprime <- embedprime$X %*% sqrt(diag(embedprime$D, nrow=dhatprime, ncol=dhatprime))
+  
+  dat <- data.frame(rotate(Xhatprime, latent, K))
+  
+  if(d == 1) {
+    names(dat) <- 'Xhatprime'
+    Blocks <- as.factor(blocks)
+    pp4 <- ggplot(dat, aes(Xhatprime)) + geom_histogram(aes(fill=Blocks), bins = 100)
+    for (k in 1:length(latent)) {
+      pp4 <- pp4 + geom_vline(xintercept = latent[k], color = 'black')
+    }
+    pp4 <- pp4 + labs(title = 'Latent Position (without Covariates)', x = 'PC1', y = '')
+    print(pp4)
+  } else {
+    Blocks <- as.factor(blocks)
+    latent_vecs <- data.frame(t(latent))
+    pp4 <- ggplot(dat) + geom_point(aes(X1, X2, color = Blocks), size = 0.3, alpha = 0.5)
+    pp4 <- pp4 + geom_point(data = latent_vecs, aes(x=X1, y=X2), shape = 4, size = 5)
+    pp4 <- pp4 + labs(title = 'Latent Position (without Covariates)', x = 'PC1', y = 'PC2')
+    print(pp4)
+  }
+  
+  multiplot(pp1, pp3, pp2, pp4, cols = 2)
+  
+  cat('****************************************************************************\n')
+  cat('Summary\n\n')
+  cat('****************************************************************************\n')
+  cat('Latent:\n')
+  print(latent)
+  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\nbetahat:', betahat, '\n')
+  cat('B:\n')
+  print(B)
+  cat('BXhat:\n')
+  print(BXhat)
+  cat('Runtime:\n')
+  print(t1+t2+t3)
+  cat('****************************************************************************')
+  
+  return(betahat)
+}
+
+
+
+## Example
+seed <- 2018
+#latent <- cbind(0.2, 0.8)
+#latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
+#latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
+beta <- 0.3
+K <- 2
+d <- 1
+n <- 2000
+pi <- rep(1/K, K)  # Balanced 
+#pi <- c(0.3, 0.7)  # Unbalanced
+pi_cov <- rep(1/(K*2), K*2)                      # Balanced 
+#pi_cov <- c(0.3*0.4, 0.3*0.6, 0.7*0.4, 0.7*0.6)  # Unbalanced
+block_size <- round(pi * n)
+block_size_cov <- round(pi_cov * n)
+cov <- 2     # Possible value of covariate, e.g. binary = 2
+dmax <- 5
+
+
+## Simulation
+latentx=0.2
+bandwidth=0.05
+latent <- cbind(latentx, 1-latentx)
+betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+error=abs(betahat-beta)
+for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
+  latent <- cbind(latent_x, 1-latent_x)
+  betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+  error=c(error,abs(betahat-beta))
+}
+plot(seq(0.2,0.45,0.05),error,xlab='latent positions of first block',ylab = 'beta error')
