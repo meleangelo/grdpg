@@ -321,7 +321,7 @@ seed <- 2018
 #latent <- cbind(0.2, 0.8)
 #latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
 #latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
-beta <- 0.3
+beta <- 0.15
 K <- 2
 d <- 1
 n <- 2000
@@ -336,8 +336,8 @@ dmax <- 5
 
 
 ## Simulation
-latentx=0.2
-bandwidth=0.05
+latentx=0.1
+bandwidth=0.025
 latent <- cbind(latentx, 1-latentx)
 betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
 error=abs(betahat-beta)
@@ -346,4 +346,4 @@ for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
   betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
   error=c(error,abs(betahat-beta))
 }
-plot(seq(0.2,0.45,0.05),error,xlab='latent positions of first block',ylab = 'beta error')
+plot(seq(0.1,0.45,0.025),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15')
