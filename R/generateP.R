@@ -69,11 +69,13 @@ generateP <- function(latent, d, block_size, addCovariates, ...) {
     beta <- list(...)[[2]]
     for (k in 1:ncol(covariates)) {
       Beta <- matrix(0, nrow = nrow(P), ncol = ncol(P))
-      for (i in 1:nrow(Beta)) {
-        for (j in 1:ncol(Beta)) {
+      for (i in 1:(nrow(Beta)-1)) {
+        for (j in (i+1):ncol(Beta)) {
           Beta[i,j] <- ifelse(covariates[i,k]==covariates[j,k], 1, 0)
         }
       }
+      Beta <- Beta + t(Beta)
+      diag(Beta) <- 1
       Beta <- Beta * beta[k]
       P <- P + Beta
     }
