@@ -144,7 +144,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   cov <- apply(covariates, 2, function(x) length(unique(x)))
   if (clusterMethod == 'GMM') {
     model <- Mclust(Xhat, G, verbose = FALSE)
-    muhats <- model$parameters$mean
+    muhats <- matrix(model$parameters$mean, nrow = dhat)
     BXhat <- t(muhats) %*% Ipq %*% muhats
     if (link == 'logit') {
       if (check == 'BF') {

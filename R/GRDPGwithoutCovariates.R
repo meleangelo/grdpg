@@ -117,7 +117,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   cat('\n\n', 'Estimating ...')
   if (clusterMethod == 'GMM') {
     model <- Mclust(Xhat, G, verbose = FALSE)
-    muhats <- model$parameters$mean
+    muhats <- matrix(model$parameters$mean, nrow = dhat)
     BXhat <- t(muhats) %*% Ipq %*% muhats
     if (link == 'logit') {
       if (check == 'BF') {
