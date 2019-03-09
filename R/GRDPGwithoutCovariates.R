@@ -83,11 +83,15 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   result <- list()
 
   cat('\n\n', 'Embedding...')
-  temp <- eigen(A)
   embedding <- embed(A, dmax, maxit = maxit)
   s <- embedding$D
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
-  Ipq <- getIpq(temp$values, dhat)
+  if (dhat == 1) {
+    Ipq <- matrix(1)
+  } else {
+    temp <- eigen(A)
+    Ipq <- getIpq(temp$values, dhat)
+  }
 
   # if (link == 'logit') {
   #   Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
