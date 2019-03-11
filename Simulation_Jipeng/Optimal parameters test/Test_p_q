@@ -221,6 +221,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   ptm <- proc.time()
   
   ## Embed
+  dhat=4
   embed <- gs.embed.ase(A, dhat)
   Xhat <- embed$X %*% sqrt(diag(embed$D, nrow=dhat, ncol=dhat))
   
@@ -251,65 +252,9 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
 
   
   
-  ## Post Analysis
-  Aprime <- getAwithoutCovariate(A, betahat, n, K, cov, covariates)
   
-  sprime <- gs.embed.ase(Aprime, dmax)$D
-  dhatprime <- dim_select(sprime)
   
-  dat <- data.frame(sprime)
-  pp3 <- ggplot(dat, aes(x=1:dmax, y=sprime)) + geom_line() + geom_point()
-  pp3 <- pp3 + labs(title = 'Screeplot (without Covariates)', x = 'Rank', y = 'Singular Value')
-  print(pp3)
   
-  ## For visualization
-  if(d == 2 & dhatprime == 1) {
-    dhatprime <- dhatprime + 1
-  }
-  
-  ## For visualization
-  if(d == 1 & dhatprime > 2) {
-    dhatprime <- 1
-  }
-  
-  embedprime <- gs.embed.ase(Aprime, dhatprime)
-  Xhatprime <- embedprime$X %*% sqrt(diag(embedprime$D, nrow=dhatprime, ncol=dhatprime))
-  
-  dat <- data.frame(rotate(Xhatprime, latent, K))
-  
-  if(d == 1) {
-    names(dat) <- 'Xhatprime'
-    Blocks <- as.factor(blocks)
-    pp4 <- ggplot(dat, aes(Xhatprime)) + geom_histogram(aes(fill=Blocks), bins = 100)
-    for (k in 1:length(latent)) {
-      pp4 <- pp4 + geom_vline(xintercept = latent[k], color = 'black')
-    }
-    pp4 <- pp4 + labs(title = 'Latent Position (without Covariates)', x = 'PC1', y = '')
-    print(pp4)
-  } else {
-    Blocks <- as.factor(blocks)
-    latent_vecs <- data.frame(t(latent))
-    pp4 <- ggplot(dat) + geom_point(aes(X1, X2, color = Blocks), size = 0.3, alpha = 0.5)
-    pp4 <- pp4 + geom_point(data = latent_vecs, aes(x=X1, y=X2), shape = 4, size = 5)
-    pp4 <- pp4 + labs(title = 'Latent Position (without Covariates)', x = 'PC1', y = 'PC2')
-    print(pp4)
-  }
-  
-  multiplot(pp1, pp3, pp2, pp4, cols = 2)
-  
-  cat('****************************************************************************\n')
-  cat('Summary\n\n')
-  cat('****************************************************************************\n')
-  cat('Latent:\n')
-  print(latent)
-  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\nbetahat:', betahat, '\n')
-  cat('B:\n')
-  print(B)
-  cat('BXhat:\n')
-  print(BXhat)
-  cat('Runtime:\n')
-  print(t1+t2+t3)
-  cat('****************************************************************************')
   
   return(betahat)
 }
@@ -318,7 +263,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
 
 ## Example
 seed <- 2018
-#latent <- cbind(0.2, 0.8)
+#latent <- cbind(0.45, 0.55)
 #latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
 #latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
 beta <- 0.15
@@ -337,7 +282,7 @@ dmax <- 5
 
 ## Simulation
 latentx=0.1
-bandwidth=0.025
+bandwidth=0.0125
 latent <- cbind(latentx, 1-latentx)
 betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
 error=abs(betahat-beta)
@@ -346,4 +291,4 @@ for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
   betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
   error=c(error,abs(betahat-beta))
 }
-plot(seq(0.1,0.45,0.025),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15')
+plot(seq(0.1,0.45,0.0125),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15, n=2000')
