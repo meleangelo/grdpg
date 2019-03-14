@@ -204,4 +204,4 @@ for (pi_cov_ in seq(0.05+bandwidth,0.45,bandwidth)){
   betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
   error=c(error,abs(betahat-beta))
 }
-plot(seq(0.05,0.45,0.025),error,xlab='Proportion of first covariate in second block',ylab = 'beta error',main = 'n=2000, p=0.425, beta=0.15')
+plot(seq(0.05,0.45,0.025)*2,error,xlab='Proportion of first covariate in second block',ylab = 'beta error',main = 'n=2000, p=0.425, beta=0.15')
