@@ -12,3 +12,4 @@ For Test_unbalanced_blocks, n=2000, beta = 0.15, latent position = (0.425,0.575)
 For Test_unbalanced_cov, n=2000, beta = 0.15, latent position = (0.425,0.575), balanced block size. 
                             The proportion of the first covariate block takes value from 0.1 to 0.5                           
 
+For Test_Z_Dependent, n=2000, beta = 0.15, latent position = (0.425,0.575), balanced block size, balcanced covariate size in                         first block. The proportion of first covariate in second block takes value from 0.1 to 0.9
