@@ -4,51 +4,6 @@ require(mclust)
 require(ggplot2)
 
 
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
 
 
 ## B matrix
@@ -229,10 +184,10 @@ d <- 1
 n <- 2000
 #pi <- rep(1/K, K)  # Balanced 
 #pi <- c(0.3, 0.7)  # Unbalanced
-pi_cov <- rep(1/(K*2), K*2)                      # Balanced 
+#pi_cov <- rep(1/(K*2), K*2)                      # Balanced 
 #pi_cov <- c(0.3*0.4, 0.3*0.6, 0.7*0.4, 0.7*0.6)  # Unbalanced
 #block_size <- round(pi * n)
-block_size_cov <- round(pi_cov * n)
+#block_size_cov <- round(pi_cov * n)
 cov <- 2     # Possible value of covariate, e.g. binary = 2
 dmax <- 5
 
@@ -241,11 +196,15 @@ dmax <- 5
 pi0=c(0.1,1-0.1)
 bandwidth=0.025
 block_size <- round(pi0 * n)
+pi_cov <- rep(pi0, 2)/2
+block_size_cov <- round(pi_cov * n)
 betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
 error=abs(betahat-beta)
 for (pi_ in seq(0.1+bandwidth,0.5,bandwidth)){
   pi=c(pi_,1-pi_)
   block_size <- round(pi * n)
+  pi_cov <- rep(pi, 2)/2
+  block_size_cov <- round(pi_cov * n)
   betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
   error=c(error,abs(betahat-beta))
 }
