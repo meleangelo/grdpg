@@ -14,6 +14,8 @@
 #' \item{\code{is.character(edge.attr)} Assumes weighted with weights given by `edge.attr`.}
 #' }
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
+#' @param work Working subspace dimension for `\link[irlba]{irlba}`.
+#' @param tol Stopping tolerance for `\link[irlba]{irlba}`.
 #' @param ... Other parameters for `\link[irlba]{irlba}`.
 #'
 #' @return A list containing the following:
@@ -30,7 +32,7 @@
 #' @export
 
 
-embed <- function(g, k = NULL, edge.attr = NULL, maxit = 1000, ...) {
+embed <- function(g, k = NULL, edge.attr = NULL, maxit = 1000, work = 12, tol = 1e-05, ...) {
   if (class(g) == 'igraph') {
     A <- as.matrix(as_adj(g, type = 'both', attr = edge.attr))
   } else {
@@ -58,7 +60,7 @@ embed <- function(g, k = NULL, edge.attr = NULL, maxit = 1000, ...) {
   } else {
     nv <- k
   }
-  result <- irlba(A, nu = nu, nv = nv, maxit = maxit)
+  result <- irlba(A, nu = nu, nv = nv, maxit = maxit, work = work, tol = tol)
   if (nv != 0) {
     result$Y <- result$v
   }

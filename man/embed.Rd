@@ -4,7 +4,8 @@
 \alias{embed}
 \title{Spectral Embedding}
 \usage{
-embed(g, k = NULL, edge.attr = NULL, maxit = 1000, ...)
+embed(g, k = NULL, edge.attr = NULL, maxit = 1000, work = 12,
+  tol = 1e-05, ...)
 }
 \arguments{
 \item{g}{An \code{\link[igraph]{igraph}} object or an \code{n} by \code{n} adjacency matrix with \code{n} vertices.}
@@ -18,6 +19,10 @@ embed(g, k = NULL, edge.attr = NULL, maxit = 1000, ...)
 }}
 
 \item{maxit}{Maximum number of iterations for \code{\link[irlba]{irlba}}.}
+
+\item{work}{Working subspace dimension for \code{\link[irlba]{irlba}}.}
+
+\item{tol}{Stopping tolerance for \code{\link[irlba]{irlba}}.}
 
 \item{...}{Other parameters for \code{\link[irlba]{irlba}}.}
 }

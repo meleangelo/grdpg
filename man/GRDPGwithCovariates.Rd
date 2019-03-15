@@ -6,8 +6,8 @@
 \usage{
 GRDPGwithCovariates(A, covariates, link = "identity",
   clusterMethod = "GMM", G = 1:9, dmax = 10, dhat = NULL,
-  maxit = 1000, check = "BF", postAnalysis = TRUE, plot = TRUE,
-  ...)
+  maxit = 1000, work = 12, tol = 1e-05, check = "BF",
+  postAnalysis = TRUE, plot = TRUE, ...)
 }
 \arguments{
 \item{A}{An adjacency matrix.}
@@ -25,6 +25,10 @@ GRDPGwithCovariates(A, covariates, link = "identity",
 \item{dhat}{Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.}
 
 \item{maxit}{Maximum number of iterations for \code{\link[irlba]{irlba}}.}
+
+\item{work}{Working subspace dimension for \code{\link[irlba]{irlba}}.}
+
+\item{tol}{Stopping tolerance for \code{\link[irlba]{irlba}}.}
 
 \item{check}{Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).}
 

@@ -12,6 +12,8 @@
 #' @param dmax Maximal embeded dimension. 10 by default.
 #' @param dhat Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
+#' @param work Working subspace dimension for `\link[irlba]{irlba}`.
+#' @param tol Stopping tolerance for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
 #' @param ... Additional parameters.
@@ -66,7 +68,7 @@
 #' @export
 
 
-GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', plot = TRUE, ...) {
+GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', plot = TRUE, ...) {
   if (!(link %in% c('identity', 'logit'))) {
     print("Unrecognized `link`, would use 'identity' by default.")
   }
@@ -83,7 +85,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   result <- list()
 
   cat('\n\n', 'Embedding...')
-  embedding <- embed(A, dmax, maxit = maxit)
+  embedding <- embed(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
   if (dhat == 1) {

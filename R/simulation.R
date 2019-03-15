@@ -20,6 +20,8 @@
 #' @param dmax Maximal embeded dimension. 10 by default.
 #' @param dhat Embeded dimension. \code{NULL} by default. If \code{NULL}, will be chosen by \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #' @param maxit Maximum number of iterations for `\link[irlba]{irlba}`.
+#' @param work Working subspace dimension for `\link[irlba]{irlba}`.
+#' @param tol Stopping tolerance for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
 #' @param postAnalysis Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
@@ -55,7 +57,7 @@
 #' @export
 
 
-simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, check = 'BF', postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
+simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
   cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
 
   ## Set Up
@@ -81,7 +83,7 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   }
 
   ## Estimation
-  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, G, dmax, dhat, maxit, check, postAnalysis, plot)
+  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, G, dmax, dhat, maxit, work, tol, check, postAnalysis, plot)
 
   ## Visualization
   pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
