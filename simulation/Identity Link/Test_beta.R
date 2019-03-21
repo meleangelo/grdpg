@@ -2,53 +2,7 @@ require(dplyr)
 require(graphstats)
 require(mclust)
 require(ggplot2)
-
-
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
+require(grdpg)
 
 
 ## B matrix
@@ -126,7 +80,17 @@ estimatebeta <- function(BXhat, cov) {
 }
 
 
-
+## Remove the effect of covariates
+getAwithoutCovariate <- function(A, betahat, n, K, cov, covariates) {
+  # Z <- rep(1:cov, each = n/(K*cov), times = K)
+  # Beta <- Z %*% t(Z)
+  Beta <- covariates %*% t(covariates)
+  Beta[Beta %in% (1:cov)^2] <- 1
+  Beta[!(Beta %in% (1:cov)^2)] <- 0
+  Beta <- Beta * betahat
+  Aprime <- A - Beta
+  return(Aprime)
+}
 
 
 ## Get the label of clusters
@@ -138,13 +102,23 @@ getClusters <- function(model) {
 }
 
 
+## Rotate latent position to compare with the truth
+rotate <- function(Xhat, latent, K) {
+  model <- Mclust(Xhat, K, verbose = FALSE)
+  means <- model$parameters$mean
+  M <- svd(means %*% t(latent))
+  R <- M$u %*% t(M$v)
+  X_R <- Xhat %*% R
+  return(X_R)
+}
+
 
 
 ## Simulation
-simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2018) {
+simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2019) {
   
   
-  cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
+  
   
   ## Set Up
   set.seed(seed)
@@ -168,7 +142,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   B <- generateBwithCovariate(latent, beta, K, d)
   P <- generatePwithCovariate(latent, beta, K, d, n, block_size, cov, covariates)
   
-  cat('\n\n', 'Sampling...')
+  
   
   
   ## Sample Network
@@ -177,22 +151,23 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   A <- generateA(n, P, seed)
   
-  cat('\n\n', 'Embedding...')
   
-  ptm <- proc.time()
   
-  ## ASE
-  s <- gs.embed.ase(A, dmax)$D
+ 
+  
+  
+  dhat <- 4
+  
+  
   
   
   ## Embed
-  dhat=4
   embed <- gs.embed.ase(A, dhat)
   Xhat <- embed$X %*% sqrt(diag(embed$D, nrow=dhat, ncol=dhat))
   
   
   
- 
+  
   
   ## Estiamte beta
   model <- Mclust(Xhat, verbose = FALSE) 
@@ -204,23 +179,38 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   betahat <- estimatebeta(BXhat, cov) 
   
-  
-  
 
   
   
   
   
+  ## Post Analysis
+  Aprime <- getAwithoutCovariate(A, betahat, n, K, cov, covariates)
   
+  dhatprime <- 4
   
-  return(betahat)
+  embedprime <- gs.embed.ase(Aprime, dhatprime)
+  Xhatprime <- embedprime$X %*% sqrt(diag(embedprime$D, nrow=dhatprime, ncol=dhatprime))
+  
+  dat <- data.frame(rotate(Xhatprime, latent, K))
+  
+  model2 <- Mclust(rotate(Xhatprime, latent, K), K, verbose = FALSE)
+      
+  phat <- model2$parameters$mean[1]
+  qhat <- model2$parameters$mean[2]
+  
+  result <- list()
+  result$phat <- phat
+  result$qhat <- qhat
+  result$betahat <- betahat
+
+  return(result)
 }
 
 
-
 ## Example
-seed <- 2018
-latent <- cbind(0.425, 0.525)
+seed <- 2019
+latent <- cbind(0.35, 0.65)
 #latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
 #latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
 #beta <- 0.15
@@ -238,13 +228,40 @@ dmax <- 5
 
 
 ## Simulation
-beta0=-0.15
+beta0=-0.1
 bandwidth=0.05
-betahat=simulation_GRDPGwithCovariates(latent, beta0, K, d, n, block_size, block_size_cov, cov, dmax)
-error=abs(betahat-beta0)
-for (beta in seq(beta0+bandwidth,0.7,bandwidth)){
+result=simulation_GRDPGwithCovariates(latent, beta0, K, d, n, block_size, block_size_cov, cov, dmax, seed=seed)
+betahat=result$betahat
+phat=result$phat
+qhat=result$qhat
+betaerror=abs(betahat-beta0)
+perror=abs(phat-latent[,1])
+qerror=abs(qhat-latent[,2])
+for (beta in seq(beta0+bandwidth,0.5,bandwidth)){
   
-  betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
-  error=c(error,abs(betahat-beta))
+  result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+  betahat=result$betahat
+  phat=result$phat
+  qhat=result$qhat
+  betaerror=c(betaerror,abs(betahat-beta))
+  perror=c(perror,abs(phat-latent[,1]))
+  qerror=c(qerror,abs(qhat-latent[,2]))
 }
-plot(seq(-0.15,0.7,0.05),error,xlab='true beta',ylab = 'beta error',main = 'n=2000, p=0.425')
+#plot(seq(-0.1,0.5,bandwidth),error,xlab='true beta',ylab = 'beta error',main = 'n=2000, p=0.35')
+
+
+dat=data.frame(betaerror)
+pp1 <- ggplot(dat, aes(x=seq(-0.1,0.5,bandwidth), y=betaerror)) + geom_line() + geom_point()
+pp1 <- pp1 + labs(title = 'n=2000, p=0.35', x = 'true beta', y = 'beta error')
+
+
+dat=data.frame(perror)
+pp2 <- ggplot(dat, aes(x=seq(-0.1,0.5,bandwidth), y=perror)) + geom_line() + geom_point()
+pp2 <- pp2 + labs(title = 'n=2000, p=0.35', x = 'true beta', y = 'p error')
+
+
+dat=data.frame(qerror)
+pp3 <- ggplot(dat, aes(x=seq(-0.1,0.5,bandwidth), y=qerror)) + geom_line() + geom_point()
+pp3 <- pp3 + labs(title = 'n=2000, p=0.35', x = 'true beta', y = 'q error')
+
+multiplot(pp1, pp2, pp3)
