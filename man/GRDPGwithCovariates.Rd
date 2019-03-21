@@ -46,8 +46,12 @@ A list containing the following:
 \item{\code{BXhat}}{A matrix indicating the estimated block probability matrix.}
 \item{\code{clusters_cov}}{An \code{n}-vecotr indicating the block label of each nodes with the effect of covariates where \code{n} is the number nodes.}
 \item{\code{Ipq}}{\code{Ipq} matrix for (G)RDPG, see \link{getIpq}.}
+\item{\code{iter}}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+\item{\code{mprod}}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 \item{\code{Xhatprime}}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates.}
 \item{\code{clusters}}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates.}
+\item{\code{iterprime}}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
+\item{\code{mprodprime}}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
 \item{\code{pp1}}{Screeplot with covariates.}
 \item{\code{pp2}}{Latent position in 2D.}
 \item{\code{pp3}}{If \code{postAnalysis==TRUE}, screeplot without covariates.}

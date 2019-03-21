@@ -32,6 +32,8 @@ A list containing the following:
 \item{\code{X}}{An \code{n} by \code{k} matrix indicating the estimated latent positions, where \code{n} is the number of vertices of \code{g}.}
 \item{\code{Y}}{\code{NULL} if \code{g} is undirected. If \code{g} is directed, \code{Y} is a \code{n} by \code{k} matrix indicating the second half of the latent positions.}
 \item{\code{D}}{The eigenvalues (for undirected graphs) or the singular values (for directed graphs) associated with the latent positions.}
+\item{\code{iter}}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+\item{\code{mprod}}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 }
 }
 \description{

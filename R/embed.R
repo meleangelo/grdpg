@@ -23,6 +23,8 @@
 #' \item{`X`}{An `n` by `k` matrix indicating the estimated latent positions, where `n` is the number of vertices of `g`.}
 #' \item{`Y`}{\code{NULL} if `g` is undirected. If `g` is directed, `Y` is a `n` by `k` matrix indicating the second half of the latent positions.}
 #' \item{`D`}{The eigenvalues (for undirected graphs) or the singular values (for directed graphs) associated with the latent positions.}
+#' \item{`iter`}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+#' \item{`mprod`}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 #' }
 #'
 #' @references `\link[graphstats]{gs.embed}`, `\link[graphstats]{gs.embed.ase}`, `\link[graphstats]{gs.embed.lse}`, `\link[irlba]{irlba}`

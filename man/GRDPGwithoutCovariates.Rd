@@ -40,6 +40,8 @@ A list containing the following:
 \item{\code{BXhat}}{A matrix indicating the estimated block probability matrix.}
 \item{\code{clusters_cov}}{An \code{n}-vecotr indicating the block label of each nodes with the effect of covariates where \code{n} is the number nodes.}
 \item{\code{Ipq}}{\code{Ipq} matrix for (G)RDPG, see \link{getIpq}.}
+\item{\code{iter}}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+\item{\code{mprod}}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 \item{\code{pp1}}{Screeplot with covariates.}
 }
 }

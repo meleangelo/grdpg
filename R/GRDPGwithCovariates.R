@@ -27,8 +27,12 @@
 #' \item{`BXhat`}{A matrix indicating the estimated block probability matrix.}
 #' \item{`clusters_cov`}{An `n`-vecotr indicating the block label of each nodes with the effect of covariates where `n` is the number nodes.}
 #' \item{`Ipq`}{`Ipq` matrix for (G)RDPG, see \link{getIpq}.}
+#' \item{`iter`}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+#' \item{`mprod`}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 #' \item{`Xhatprime`}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates.}
 #' \item{`clusters`}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates.}
+#' \item{`iterprime`}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
+#' \item{`mprodprime`}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
 #' \item{`pp1`}{Screeplot with covariates.}
 #' \item{`pp2`}{Latent position in 2D.}
 #' \item{`pp3`}{If \code{postAnalysis==TRUE}, screeplot without covariates.}
@@ -121,6 +125,9 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     Ipq <- getIpq(temp$values, dhat)
   }
 
+  result$iter <- embedding$iter
+  result$mprod <- embedding$mprod
+
   # if (link == 'logit') {
   #   Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
   #   Qhat <- Yhat %*% Ipq %*% t(Yhat)
@@ -204,6 +211,8 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
       model2 <- kmeans(Xhatprime, centers)
       clusters <- model2$cluster
     }
+    result$iterprime <- embedprime$iter
+    result$mprodprime <- embedprime$mprod
     result$Xhatprime <- Xhatprime
     result$clusters <- clusters
   }

@@ -24,6 +24,8 @@
 #' \item{`BXhat`}{A matrix indicating the estimated block probability matrix.}
 #' \item{`clusters_cov`}{An `n`-vecotr indicating the block label of each nodes with the effect of covariates where `n` is the number nodes.}
 #' \item{`Ipq`}{`Ipq` matrix for (G)RDPG, see \link{getIpq}.}
+#' \item{`iter`}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
+#' \item{`mprod`}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
 #' \item{`pp1`}{Screeplot with covariates.}
 #' }
 #'
@@ -94,6 +96,9 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
     temp <- eigen(A)
     Ipq <- getIpq(temp$values, dhat)
   }
+
+  result$iter <- embedding$iter
+  result$mprod <- embedding$mprod
 
   # if (link == 'logit') {
   #   Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
