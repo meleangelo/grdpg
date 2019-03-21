@@ -2,8 +2,7 @@ require(dplyr)
 require(graphstats)
 require(mclust)
 require(ggplot2)
-
-
+require(grdpg)
 
 
 ## B matrix
@@ -81,7 +80,17 @@ estimatebeta <- function(BXhat, cov) {
 }
 
 
-
+## Remove the effect of covariates
+getAwithoutCovariate <- function(A, betahat, n, K, cov, covariates) {
+  # Z <- rep(1:cov, each = n/(K*cov), times = K)
+  # Beta <- Z %*% t(Z)
+  Beta <- covariates %*% t(covariates)
+  Beta[Beta %in% (1:cov)^2] <- 1
+  Beta[!(Beta %in% (1:cov)^2)] <- 0
+  Beta <- Beta * betahat
+  Aprime <- A - Beta
+  return(Aprime)
+}
 
 
 ## Get the label of clusters
@@ -93,13 +102,23 @@ getClusters <- function(model) {
 }
 
 
+## Rotate latent position to compare with the truth
+rotate <- function(Xhat, latent, K) {
+  model <- Mclust(Xhat, K, verbose = FALSE)
+  means <- model$parameters$mean
+  M <- svd(means %*% t(latent))
+  R <- M$u %*% t(M$v)
+  X_R <- Xhat %*% R
+  return(X_R)
+}
+
 
 
 ## Simulation
-simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2018) {
+simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2019) {
   
   
-  cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
+  
   
   ## Set Up
   set.seed(seed)
@@ -123,7 +142,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   B <- generateBwithCovariate(latent, beta, K, d)
   P <- generatePwithCovariate(latent, beta, K, d, n, block_size, cov, covariates)
   
-  cat('\n\n', 'Sampling...')
+  
   
   
   ## Sample Network
@@ -132,22 +151,23 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   A <- generateA(n, P, seed)
   
-  cat('\n\n', 'Embedding...')
   
-  ptm <- proc.time()
   
-  ## ASE
-  s <- gs.embed.ase(A, dmax)$D
+ 
+  
+  
+  dhat <- 4
+  
+  
   
   
   ## Embed
-  dhat=4
   embed <- gs.embed.ase(A, dhat)
   Xhat <- embed$X %*% sqrt(diag(embed$D, nrow=dhat, ncol=dhat))
   
   
   
- 
+  
   
   ## Estiamte beta
   model <- Mclust(Xhat, verbose = FALSE) 
@@ -159,23 +179,37 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   betahat <- estimatebeta(BXhat, cov) 
   
-  
-  
 
   
   
   
   
+  ## Post Analysis
+  Aprime <- getAwithoutCovariate(A, betahat, n, K, cov, covariates)
   
+  dhatprime <- 4
   
-  return(betahat)
+  embedprime <- gs.embed.ase(Aprime, dhatprime)
+  Xhatprime <- embedprime$X %*% sqrt(diag(embedprime$D, nrow=dhatprime, ncol=dhatprime))
+  
+  dat <- data.frame(rotate(Xhatprime, latent, K))
+  
+  model2 <- Mclust(rotate(Xhatprime, latent, K), K, verbose = FALSE)
+      
+  phat <- model2$parameters$mean[1]
+  qhat <- model2$parameters$mean[2]
+  
+  result <- list()
+  result$phat <- phat
+  result$qhat <- qhat
+  result$betahat <- betahat
+
+  return(result)
 }
 
-
-
 ## Example
-seed <- 2018
-latent <- cbind(0.425, 0.525)
+seed <- 2019
+latent <- cbind(0.35, 0.65)
 #latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
 #latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
 beta <- 0.15
@@ -196,12 +230,44 @@ dmax <- 5
 pi_cov0=c(0.25,0.25,0.05,0.5-0.05)
 bandwidth=0.025
 block_size_cov <- round(pi_cov0 * n)
-betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
-error=abs(betahat-beta)
+result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, seed=seed)
+betahat=result$betahat
+phat=result$phat
+qhat=result$qhat
+betaerror=abs(betahat-beta)
+perror=abs(phat-latent[,1])
+qerror=abs(qhat-latent[,2])
+
 for (pi_cov_ in seq(0.05+bandwidth,0.45,bandwidth)){
   pi_cov=c(0.25,0.25,pi_cov_,0.5-pi_cov_)
   block_size_cov <- round(pi_cov * n)
-  betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
-  error=c(error,abs(betahat-beta))
+  result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax,seed=seed)
+  betahat=result$betahat
+  phat=result$phat
+  qhat=result$qhat
+  betaerror=c(betaerror,abs(betahat-beta))
+  perror=c(perror,abs(phat-latent[,1]))
+  qerror=c(qerror,abs(qhat-latent[,2]))
 }
-plot(seq(0.05,0.45,0.025)*2,error,xlab='Proportion of first covariate in second block',ylab = 'beta error',main = 'n=2000, p=0.425, beta=0.15')
+#plot(seq(0.05,0.45,bandwidth)*2,betaerror,xlab='Proportion of first covariate in second block',ylab = 'beta error',main = 'n=2000, p=0.35, beta=0.15')
+
+#plot(seq(0.05,0.45,0.025)*2,perror,xlab='Proportion of first covariate in second block',ylab = 'p error',main = 'n=2000, p=0.35, beta=0.15')
+
+#plot(seq(0.05,0.45,0.025)*2,qerror,xlab='Proportion of first covariate in second block',ylab = 'q error',main = 'n=2000, p=0.35, beta=0.15')
+
+
+dat=data.frame(betaerror)
+pp1 <- ggplot(dat, aes(x=seq(0.05,0.45,bandwidth)*2, y=betaerror)) + geom_line() + geom_point()
+pp1 <- pp1 + labs(title = 'n=2000, p=0.35, beta=0.15', x = 'Proportion of first covariate in second block', y = 'beta error')
+
+
+dat=data.frame(perror)
+pp2 <- ggplot(dat, aes(x=seq(0.05,0.45,bandwidth)*2, y=perror)) + geom_line() + geom_point()
+pp2 <- pp2 + labs(title = 'n=2000, p=0.35, beta=0.15', x = 'Proportion of first covariate in second block', y = 'p error')
+
+
+dat=data.frame(qerror)
+pp3 <- ggplot(dat, aes(x=seq(0.05,0.45,bandwidth)*2, y=qerror)) + geom_line() + geom_point()
+pp3 <- pp3 + labs(title = 'n=2000, p=0.35, beta=0.15', x = 'Proportion of first covariate in second block', y = 'q error')
+
+multiplot(pp1, pp2, pp3)
