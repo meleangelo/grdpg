@@ -2,53 +2,7 @@ require(dplyr)
 require(graphstats)
 require(mclust)
 require(ggplot2)
-
-
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
+require(grdpg)
 
 
 ## B matrix
@@ -159,11 +113,12 @@ rotate <- function(Xhat, latent, K) {
 }
 
 
+
 ## Simulation
-simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2018) {
+simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax, sd=FALSE, seed=2019) {
   
   
-  cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
+  
   
   ## Set Up
   set.seed(seed)
@@ -187,7 +142,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   B <- generateBwithCovariate(latent, beta, K, d)
   P <- generatePwithCovariate(latent, beta, K, d, n, block_size, cov, covariates)
   
-  cat('\n\n', 'Sampling...')
+  
   
   
   ## Sample Network
@@ -196,46 +151,23 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   A <- generateA(n, P, seed)
   
-  cat('\n\n', 'Embedding...')
-  
-  ptm <- proc.time()
-  
-  ## ASE
-  s <- gs.embed.ase(A, dmax)$D
-  dhat <- dim_select(s)
   
   
-  ## ??
-  if(dhat == 1) {
-    dhat <- dhat + 1
-  }
+ 
   
-  t1 <- proc.time() - ptm
   
-  ## Screeplot with Covariates
-  dat <- data.frame(s)
-  pp1 <- ggplot(dat, aes(x=1:dmax, y=s)) + geom_line() + geom_point()
-  pp1 <- pp1 + labs(title = 'Screeplot (with Covariates)', x = 'Rank', y = 'Singular Value')
-  print(pp1)
+  dhat <- 4
   
-  ptm <- proc.time()
+  
+  
   
   ## Embed
-  dhat=4
   embed <- gs.embed.ase(A, dhat)
   Xhat <- embed$X %*% sqrt(diag(embed$D, nrow=dhat, ncol=dhat))
   
-  t2 <- proc.time() - ptm
   
-  ## Latent Position with Covariates
-  dat <- data.frame(Xhat, Blocks = as.factor(blocks), Covariate = as.factor(covariates))
-  pp2 <- ggplot(dat) + geom_point(aes(x=X1, y=X2, color=Blocks, shape=Covariate), alpha = 0.5)
-  pp2 <- pp2 + labs(title = 'Latent Position (with Covariates)', x = 'PC1', y = 'PC2')
-  print(pp2)
   
-  cat('\n\n', 'Estimating beta...')
   
-  ptm <- proc.time()
   
   ## Estiamte beta
   model <- Mclust(Xhat, verbose = FALSE) 
@@ -247,19 +179,33 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
   
   betahat <- estimatebeta(BXhat, cov) 
   
-  t3 <- proc.time() - ptm
-  
 
   
   
   
   
+  ## Post Analysis
+  Aprime <- getAwithoutCovariate(A, betahat, n, K, cov, covariates)
   
+  dhatprime <- 4
   
-  return(betahat)
+  embedprime <- gs.embed.ase(Aprime, dhatprime)
+  Xhatprime <- embedprime$X %*% sqrt(diag(embedprime$D, nrow=dhatprime, ncol=dhatprime))
+  
+  dat <- data.frame(rotate(Xhatprime, latent, K))
+  
+  model2 <- Mclust(rotate(Xhatprime, latent, K), K, verbose = FALSE)
+      
+  phat <- model2$parameters$mean[1]
+  qhat <- model2$parameters$mean[2]
+  
+  result <- list()
+  result$phat <- phat
+  result$qhat <- qhat
+  result$betahat <- betahat
+
+  return(result)
 }
-
-
 
 ## Example
 seed <- 2018
@@ -284,11 +230,37 @@ dmax <- 5
 latentx=0.1
 bandwidth=0.0125
 latent <- cbind(latentx, 1-latentx)
-betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
-error=abs(betahat-beta)
+result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+betahat=result$betahat
+phat=result$phat
+qhat=result$qhat
+betaerror=abs(betahat-beta)
+perror=abs(phat-latent[,1])
+qerror=abs(qhat-latent[,2])
 for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
   latent <- cbind(latent_x, 1-latent_x)
-  betahat=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
-  error=c(error,abs(betahat-beta))
+  result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+  betahat=result$betahat
+  phat=result$phat
+  qhat=result$qhat
+  betaerror=c(betaerror,abs(betahat-beta))
+  perror=c(perror,abs(phat-latent[,1]))
+  qerror=c(qerror,abs(qhat-latent[,2]))
 }
-plot(seq(0.1,0.45,0.0125),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15, n=2000')
+#plot(seq(0.1,0.45,0.35),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15, n=2000')
+
+dat=data.frame(betaerror)
+pp1 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=betaerror)) + geom_line() + geom_point()
+pp1 <- pp1 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'beta error')
+
+
+dat=data.frame(perror)
+pp2 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=perror)) + geom_line() + geom_point()
+pp2 <- pp2 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'p error')
+
+
+dat=data.frame(qerror)
+pp3 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=qerror)) + geom_line() + geom_point()
+pp3 <- pp3 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'q error')
+
+multiplot(pp1, pp2, pp3)
