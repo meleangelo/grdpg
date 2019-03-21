@@ -208,7 +208,7 @@ simulation_GRDPGwithCovariates <- function(latent, beta, K, d, n, block_size, bl
 }
 
 ## Example
-seed <- 2018
+seed <- 2019
 #latent <- cbind(0.45, 0.55)
 #latent <- cbind(0.2, 0.4, 0.7, 0.8)                # d = 1
 #latent <- cbind(c(0.63, -0.14), c(0.69, 0.13))     # d = 2
@@ -230,16 +230,16 @@ dmax <- 5
 latentx=0.1
 bandwidth=0.0125
 latent <- cbind(latentx, 1-latentx)
-result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax,seed=seed)
 betahat=result$betahat
 phat=result$phat
 qhat=result$qhat
 betaerror=abs(betahat-beta)
 perror=abs(phat-latent[,1])
 qerror=abs(qhat-latent[,2])
-for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
+for (latent_x in seq(latentx+bandwidth,0.5,bandwidth)){
   latent <- cbind(latent_x, 1-latent_x)
-  result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax)
+  result=simulation_GRDPGwithCovariates(latent, beta, K, d, n, block_size, block_size_cov, cov, dmax,seed=seed)
   betahat=result$betahat
   phat=result$phat
   qhat=result$qhat
@@ -250,17 +250,17 @@ for (latent_x in seq(latentx+bandwidth,0.45,bandwidth)){
 #plot(seq(0.1,0.45,0.35),error,xlab='latent positions of first block',ylab = 'beta error',main = 'True beta=0.15, n=2000')
 
 dat=data.frame(betaerror)
-pp1 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=betaerror)) + geom_line() + geom_point()
+pp1 <- ggplot(dat, aes(x=seq(0.1,0.5,0.0125), y=betaerror)) + geom_line() + geom_point()
 pp1 <- pp1 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'beta error')
 
 
 dat=data.frame(perror)
-pp2 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=perror)) + geom_line() + geom_point()
+pp2 <- ggplot(dat, aes(x=seq(0.1,0.5,0.0125), y=perror)) + geom_line() + geom_point()
 pp2 <- pp2 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'p error')
 
 
 dat=data.frame(qerror)
-pp3 <- ggplot(dat, aes(x=seq(0.1,0.45,0.0125), y=qerror)) + geom_line() + geom_point()
+pp3 <- ggplot(dat, aes(x=seq(0.1,0.5,0.0125), y=qerror)) + geom_line() + geom_point()
 pp3 <- pp3 + labs(title = 'True beta=0.15, n=2000', x = 'latent positions of first block', y = 'q error')
 
 multiplot(pp1, pp2, pp3)
