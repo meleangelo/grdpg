@@ -16,4 +16,4 @@ For "Test_Z_Dependent", n=2000, beta = 0.15, latent position = (0.35,0.65), bala
 
 For "Test p=q=0.5, iterations=50", n=2000, beta=0.15, latent position = (0.35,0.65), balanced block size, balanced covariate                                      size in both blocks. Iterations = 50.
 
-For 
+For "Test pi_cov=(0.25,0.25,0.05,0.45) Iterations=50", n=2000, beta=0.15, latent position = (0.35,0.65), balanced block size,                                                        balanced covariate size in the first block and unblanced covariate size                                                        in the second block. The proportion of first covariate in second block                                                        takes value of 0.1. Iterations = 50.
