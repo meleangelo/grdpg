@@ -24,7 +24,9 @@ latent <- cbind(p, q)
 
 
 ## Change size of each block
-pi <- c(0.5, 0.5)
+pi_1 <- 0.5
+pi_2 <- 1 - pi_2
+pi <- c(pi_1, pi_2)
 block_size <- round(pi * n)
 blocks <- c()
 for (k in 1:length(block_size)) {
@@ -37,8 +39,10 @@ beta <- 1
 
 
 ## Change proportion of one binary covariate
-pi_z <- c(0.5, 0.5)
-pi_cov <- c(pi[1]*pi_z[1], pi[1]*pi_z[2], pi[2]*pi_z[1], pi[2]*pi_z[2])  
+pi_z_1 <- 0.5
+pi_z_2 <- 1 - pi_z_2
+pi_z <- c(pi_z_1, pi_z_2)
+pi_cov <- c(pi_1*pi_z_1, pi_1*pi_z_2, pi_2*pi_z_1, pi_2*pi_z_2)  
 block_size_cov <- round(pi_cov * n)
 covariates <- matrix(c(rep(1,block_size_cov[1]), rep(2,block_size_cov[2]), rep(1,block_size_cov[3]), rep(2,block_size_cov[4])))
 blocks_cov <- c()
@@ -55,7 +59,7 @@ P <- generateP(latent, d, block_size, addCovariates, covariates, beta)
 ## Simulation
 allresults <- data.frame()
 
-imax <- 10
+imax <- 100
 for (i in 1:imax) {
   
   tryCatch(
@@ -73,7 +77,7 @@ for (i in 1:imax) {
       qhat <- model2$parameters$mean[2]
       betahat <- result$betahat
       
-      allresults <- rbind(allresults, data.frame(n, pi_z[1], pi_z[2], p, q, phat, qhat, beta, betahat, ARI))
+      allresults <- rbind(allresults, data.frame(n, pi_1, pi_2, pi_z_1, pi_z_2, p, q, phat, qhat, beta, betahat, ARI))
     }, 
     error = function(e) { cat("\n", "ERROR: ", conditionMessage(e), "\n\n") }
   )
