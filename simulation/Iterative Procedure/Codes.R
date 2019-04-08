@@ -4,17 +4,6 @@ require(mclust)
 require(ggplot2)
 require(grdpg)
 
-## Get Ipq for GRDPG
-getIpq <- function(s, d) {
-  p <- which(s<abs(s[length(s)]))[1]
-  if (p > d) {
-    Ipq <- diag(rep(1,d))
-  } else {
-    Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
-  }
-  return(Ipq)
-}
-
 get_beta <- function(Phat,covariates,Xhat){
   Z=covariates
   n=dim(A)[1]
