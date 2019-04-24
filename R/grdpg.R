@@ -10,6 +10,7 @@
 #' \item{\code{\link{sigmoid}}}{Sigmoid function.}
 #' \item{\code{\link{BFcheck}}}{Check whether all entries of the estimated probabiltiy matrix are between 0 and 1. Set the ones that not greater than 0 to be a lower bound and the ones that not less than 1 to be a upper bound.}
 #' \item{\code{\link{Removecheck}}}{Check whether all entries of the estimated probabiltiy matrix are between 0 and 1. Remove all rows and columns that contain values that are not greater than 0 and not less than 1.}
+#' \item{\code{\link{getWeight}}}{Use frequency as the weight of each group.}
 #' }
 #' \item{Simulation functions}
 #' \describe{
@@ -25,7 +26,8 @@
 #' \item{\code{\link{embed}}}{Spectral decomposition of the adjacency/Laplacian matrices of graphs.}
 #' \item{\code{\link{getIpq}}}{Construct `Ipq` matrix for Generalized Random Dot Product Graph.}
 #' \item{\code{\link{getBlockCovariates}}}{Get the covariates for each block based on the frequency of each covariate within each block.}
-#' \item{\code{\link{estimatebeta}}}{Estimate beta (the effect of covariates).}
+#' \item{\code{\link{estimatebeta}}}{Estimate beta (the effect of covariates) using simple procedure.}
+#' \item{\code{\link{estimatebeta2}}}{Estimate beta (the effect of covariates) using weighted procedure.}
 #' \item{\code{\link{getAwithoutCovariates}}}{Get the adjacency matrix without the effect of covariates.}
 #' \item{\code{\link{getClusters}}}{Get the block label of each nodes according to the block assignment probability.}
 #' \item{\code{\link{GRDPGwithoutCovariates}}}{Estimate (Generalized) Random Dot Product Graph (GRDPG) without effect of covariates.}

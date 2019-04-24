@@ -87,21 +87,25 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
 
   ## Visualization
   pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
-  pp4 <- plotLatentPosition(result$Xhatprime, blocks, withCovariates = FALSE, latent, K, d)
-  multiplot(result$pp1, result$pp3, pp2[[1]], pp4, cols = 2)
+  pp4_simple <- plotLatentPosition(result$Xhatprime_simple, blocks, withCovariates = FALSE, latent, K, d)
+  multiplot(result$pp1, result$pp3_simple, pp2[[1]], pp4_simple, cols = 2)
+
+  pp4_weighted <- plotLatentPosition(result$Xhatprime_weighted, blocks, withCovariates = FALSE, latent, K, d)
+  multiplot(result$pp1, result$pp3_weighted, pp2[[1]], pp4_weighted, cols = 2)
 
   ## Evaluation
   cat('\n\nSummary\n\n')
   cat('****************************************************************************\n')
   cat('Latent:\n')
   print(latent)
-  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\nbetahat:', result$betahat, '\n')
+  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\nbetahat_simple:', result$betahat_simple, '\nbetahat_weighted:', result$betahat_weighted, '\n')
   cat('B:\n')
   print(B)
   cat('BXhat:\n')
   print(result$BXhat)
   cat('ARI with covariates:', adjustedRandIndex(blocks_cov, result$clusters_cov), '\n')
-  cat('ARI without covariates:', adjustedRandIndex(blocks, result$clusters), '\n')
+  cat('ARI without covariates associated with beta_simple:', adjustedRandIndex(blocks, result$clusters_simple), '\n')
+  cat('ARI without covariates associated with beta_weighted:', adjustedRandIndex(blocks, result$clusters_weighted), '\n')
   cat('****************************************************************************\n')
 }
 

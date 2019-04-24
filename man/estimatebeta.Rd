@@ -14,10 +14,10 @@ estimatebeta(BXhat, cov, covariates_block)
 \item{covariates_block}{Estimated covariates for each block. Should be a \code{k} by \code{c} matrix or dataframe where \code{k} is the number of blocks and \code{c} is the number of covariates.}
 }
 \value{
-A list containing all estimated beta. Each element of the list, i.e. the length of the list equals to the number of covariates.
+A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.
 }
 \description{
-Estimate beta (the effect of covariates).
+Estimate beta (the effect of covariates) using simple procedure.
 }
 \seealso{
 \code{\link{grdpg}}

@@ -23,19 +23,25 @@
 #' @return A list containing the following:
 #' \describe{
 #' \item{`Xhat`}{An `n` by `d` matrix indicating the estimated latent positions, where `n` is the number nodes and `d` is the embeded dimension.}
-#' \item{`betahat`}{A `c`-vector indicating the effect of covariates where `c` is the number of covariates.}
+#' \item{`betahat_simple`}{A `c`-vector indicating the effect of covariates where `c` is the number of covariates using simple procedure.}
+#' \item{`betahat_weighted`}{A `c`-vector indicating the effect of covariates where `c` is the number of covariates using weighted procedure.}
 #' \item{`BXhat`}{A matrix indicating the estimated block probability matrix.}
 #' \item{`clusters_cov`}{An `n`-vecotr indicating the block label of each nodes with the effect of covariates where `n` is the number nodes.}
 #' \item{`Ipq`}{`Ipq` matrix for (G)RDPG, see \link{getIpq}.}
 #' \item{`iter`}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
 #' \item{`mprod`}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
-#' \item{`Xhatprime`}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates.}
-#' \item{`clusters`}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates.}
-#' \item{`iterprime`}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
-#' \item{`mprodprime`}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
+#' \item{`Xhatprime_simple`}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates associated with `betahat_simple`.}
+#' \item{`clusters_simple`}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates associated with `betahat_simple`.}
+#' \item{`iterprime_simple`}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates associated with `betahat_simple`. See \link[irlba]{irlba}.}
+#' \item{`mprodprime_simple`}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates associated with `betahat_simple`. See \link[irlba]{irlba}.}
+#' \item{`Xhatprime_weighted`}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates associated with `betahat_weighted`.}
+#' \item{`clusters_weighted`}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates associated with `betahat_weighted`.}
+#' \item{`iterprime_weighted`}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates associated with `betahat_weighted`. See \link[irlba]{irlba}.}
+#' \item{`mprodprime_weighted`}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates associated with `betahat_weighted`. See \link[irlba]{irlba}.}
 #' \item{`pp1`}{Screeplot with covariates.}
 #' \item{`pp2`}{Latent position in 2D.}
-#' \item{`pp3`}{If \code{postAnalysis==TRUE}, screeplot without covariates.}
+#' \item{`pp3_simple`}{If \code{postAnalysis==TRUE}, screeplot without covariates associated with `betahat_simple`.}
+#' \item{`pp3_weighted`}{If \code{postAnalysis==TRUE}, screeplot without covariates associated with `betahat_weighted`.}
 #' }
 #'
 #' @examples
@@ -78,17 +84,22 @@
 #' result <- GRDPGwithCovariates(A, covariates)
 #'
 #' ## Evaluation
-#' print(adjustedRandIndex(blocks_cov, result$clusters_cov))    # ARI with covariates
-#' print(adjustedRandIndex(blocks, result$clusters))            # ARI without covariates
-#' print(beta)                     # True beta
-#' print(result$betahat)           # Estimated beta
-#' print(B)                        # True B matrix
-#' print(result$BXhat)             # Estimated B matrix
+#' print(adjustedRandIndex(blocks_cov, result$clusters_cov))          # ARI with covariates
+#' print(adjustedRandIndex(blocks, result$clusters_simple))           # ARI without covariates associated with beta_simple
+#' print(adjustedRandIndex(blocks, result$clusters_weighted))         # ARI without covariates associated with beta_weighted
+#' print(beta)                              # True beta
+#' print(result$betahat_simple)             # Estimated beta using simple procedure
+#' print(result$betahat_weighted)           # Estimated beta using weighted procedure
+#' print(B)                                 # True B matrix
+#' print(result$BXhat)                      # Estimated B matrix
 #'
 #' ## Visualization
 #' pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
-#' pp4 <- plotLatentPosition(result$Xhatprime, blocks, withCovariates = FALSE, latent, K, d)
-#' multiplot(result$pp1, result$pp3, pp2[[1]], pp4, cols = 2)
+#' pp4_simple <- plotLatentPosition(result$Xhatprime_simple, blocks, withCovariates = FALSE, latent, K, d)
+#' multiplot(result$pp1, result$pp3_simple, pp2[[1]], pp4_simple, cols = 2)
+#'
+#' pp4_weighted <- plotLatentPosition(result$Xhatprime_weighted, blocks, withCovariates = FALSE, latent, K, d)
+#' multiplot(result$pp1, result$pp3_weighted, pp2[[1]], pp4_weighted, cols = 2)
 #'
 #' @author Cong Mu \email{placid8889@gmail.com}
 #'
@@ -179,15 +190,19 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     clusters_cov <- model$cluster
     covariates_block <- getBlockCovariates(covariates, clusters_cov)
   }
-  betahats <- estimatebeta(BXhat, cov, covariates_block)
-  betahat <- sapply(betahats, mean)
+  betahats1 <- estimatebeta(BXhat, cov, covariates_block)
+  betahat1 <- sapply(betahats1, mean)
+
+  betahats2 <- estimatebeta2(BXhat, cov, covariates, clusters_cov)
+  betahat2 <- sapply(betahats2, sum)
 
   result$BXhat <- BXhat
-  result$betahat <- betahat
+  result$betahat_simple <- betahat1
+  result$betahat_weighted <- betahat2
   result$clusters_cov <- clusters_cov
 
   if (postAnalysis) {
-    cat('\n\n', 'Post Analysis...')
+    cat('\n\n', 'Post Analysis using beta_simple...')
     if (link == 'logit') {
       Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
       Qhat <- Yhat %*% Ipq %*% t(Yhat)
@@ -196,14 +211,14 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
       } else {
         What <- logit(Removecheck(Qhat))
       }
-      Aprime <- getAwithoutCovariates(What, betahat, covariates)
+      Aprime <- getAwithoutCovariates(What, betahat1, covariates)
     } else {
-      Aprime <- getAwithoutCovariates(A, betahat, covariates)
+      Aprime <- getAwithoutCovariates(A, betahat1, covariates)
     }
     embedprime <- embed(Aprime, dmax, maxit = maxit, work = work, tol = tol)
-    sprime <- embedprime$D
-    dhatprime <- dimselect(sprime)$elbow
-    Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
+    sprime_simple <- embedprime$D
+    dhatprime <- dimselect(sprime_simple)$elbow
+    Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_simple[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
     if (clusterMethod == 'GMM') {
       model2 <- Mclust(Xhatprime, G, verbose = FALSE)
       clusters <- getClusters(data.frame(model2$z))
@@ -211,18 +226,61 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
       model2 <- kmeans(Xhatprime, centers)
       clusters <- model2$cluster
     }
-    result$iterprime <- embedprime$iter
-    result$mprodprime <- embedprime$mprod
-    result$Xhatprime <- Xhatprime
-    result$clusters <- clusters
+    result$iterprime_simple <- embedprime$iter
+    result$mprodprime_simple <- embedprime$mprod
+    result$Xhatprime_simple <- Xhatprime
+    result$clusters_simple <- clusters
+  }
+
+  if (postAnalysis) {
+    cat('\n\n', 'Post Analysis using beta_weighted...')
+    if (link == 'logit') {
+      Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
+      Qhat <- Yhat %*% Ipq %*% t(Yhat)
+      if (check == 'BF') {
+        What <- logit(BFcheck(Qhat))
+      } else {
+        What <- logit(Removecheck(Qhat))
+      }
+      Aprime <- getAwithoutCovariates(What, betahat2, covariates)
+    } else {
+      Aprime <- getAwithoutCovariates(A, betahat2, covariates)
+    }
+    embedprime <- embed(Aprime, dmax, maxit = maxit, work = work, tol = tol)
+    sprime_weighted <- embedprime$D
+    dhatprime <- dimselect(sprime_weighted)$elbow
+    Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_weighted[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
+    if (clusterMethod == 'GMM') {
+      model2 <- Mclust(Xhatprime, G, verbose = FALSE)
+      clusters <- getClusters(data.frame(model2$z))
+    } else {
+      model2 <- kmeans(Xhatprime, centers)
+      clusters <- model2$cluster
+    }
+    result$iterprime_weighted <- embedprime$iter
+    result$mprodprime_weighted <- embedprime$mprod
+    result$Xhatprime_weighted <- Xhatprime
+    result$clusters_weighted <- clusters
   }
 
   if (plot) {
     pp1 <- screeplot(s, 'Screeplot (with Covariates)')
     pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
     if (postAnalysis) {
-      pp3 <- screeplot(sprime, 'Screeplot (without Covariates)')
-      result$pp3 <- pp3
+      pp3 <- screeplot(sprime_simple, 'Screeplot (without Covariates)')
+      result$pp3_simple <- pp3
+    }
+    multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))
+    result$pp1 <- pp1
+    result$pp2 <- pp2
+  }
+
+  if (plot) {
+    pp1 <- screeplot(s, 'Screeplot (with Covariates)')
+    pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
+    if (postAnalysis) {
+      pp3 <- screeplot(sprime_weighted, 'Screeplot (without Covariates)')
+      result$pp3_weighted <- pp3
     }
     multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))
     result$pp1 <- pp1

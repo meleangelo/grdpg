@@ -42,19 +42,25 @@ GRDPGwithCovariates(A, covariates, link = "identity",
 A list containing the following:
 \describe{
 \item{\code{Xhat}}{An \code{n} by \code{d} matrix indicating the estimated latent positions, where \code{n} is the number nodes and \code{d} is the embeded dimension.}
-\item{\code{betahat}}{A \code{c}-vector indicating the effect of covariates where \code{c} is the number of covariates.}
+\item{\code{betahat_simple}}{A \code{c}-vector indicating the effect of covariates where \code{c} is the number of covariates using simple procedure.}
+\item{\code{betahat_weighted}}{A \code{c}-vector indicating the effect of covariates where \code{c} is the number of covariates using weighted procedure.}
 \item{\code{BXhat}}{A matrix indicating the estimated block probability matrix.}
 \item{\code{clusters_cov}}{An \code{n}-vecotr indicating the block label of each nodes with the effect of covariates where \code{n} is the number nodes.}
 \item{\code{Ipq}}{\code{Ipq} matrix for (G)RDPG, see \link{getIpq}.}
 \item{\code{iter}}{The number of Lanczos iterations carried out. See \link[irlba]{irlba}.}
 \item{\code{mprod}}{The total number of matrix vector products carried out. See \link[irlba]{irlba}.}
-\item{\code{Xhatprime}}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates.}
-\item{\code{clusters}}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates.}
-\item{\code{iterprime}}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
-\item{\code{mprodprime}}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates. See \link[irlba]{irlba}.}
+\item{\code{Xhatprime_simple}}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates associated with \code{betahat_simple}.}
+\item{\code{clusters_simple}}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates associated with \code{betahat_simple}.}
+\item{\code{iterprime_simple}}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates associated with \code{betahat_simple}. See \link[irlba]{irlba}.}
+\item{\code{mprodprime_simple}}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates associated with \code{betahat_simple}. See \link[irlba]{irlba}.}
+\item{\code{Xhatprime_weighted}}{If \code{postAnalysis==TRUE}, estimated latent positions after removing the effect of covariates associated with \code{betahat_weighted}.}
+\item{\code{clusters_weighted}}{If \code{postAnalysis==TRUE}, block label of each nodes without the effect of covariates associated with \code{betahat_weighted}.}
+\item{\code{iterprime_weighted}}{If \code{postAnalysis==TRUE}, the number of Lanczos iterations carried out after removing the effect of covariates associated with \code{betahat_weighted}. See \link[irlba]{irlba}.}
+\item{\code{mprodprime_weighted}}{If \code{postAnalysis==TRUE}, the total number of matrix vector products carried out after removing the effect of covariates associated with \code{betahat_weighted}. See \link[irlba]{irlba}.}
 \item{\code{pp1}}{Screeplot with covariates.}
 \item{\code{pp2}}{Latent position in 2D.}
-\item{\code{pp3}}{If \code{postAnalysis==TRUE}, screeplot without covariates.}
+\item{\code{pp3_simple}}{If \code{postAnalysis==TRUE}, screeplot without covariates associated with \code{betahat_simple}.}
+\item{\code{pp3_weighted}}{If \code{postAnalysis==TRUE}, screeplot without covariates associated with \code{betahat_weighted}.}
 }
 }
 \description{
@@ -100,17 +106,22 @@ A <- generateA(n, P)
 result <- GRDPGwithCovariates(A, covariates)
 
 ## Evaluation
-print(adjustedRandIndex(blocks_cov, result$clusters_cov))    # ARI with covariates
-print(adjustedRandIndex(blocks, result$clusters))            # ARI without covariates
-print(beta)                     # True beta
-print(result$betahat)           # Estimated beta
-print(B)                        # True B matrix
-print(result$BXhat)             # Estimated B matrix
+print(adjustedRandIndex(blocks_cov, result$clusters_cov))          # ARI with covariates
+print(adjustedRandIndex(blocks, result$clusters_simple))           # ARI without covariates associated with beta_simple
+print(adjustedRandIndex(blocks, result$clusters_weighted))         # ARI without covariates associated with beta_weighted
+print(beta)                              # True beta
+print(result$betahat_simple)             # Estimated beta using simple procedure
+print(result$betahat_weighted)           # Estimated beta using weighted procedure
+print(B)                                 # True B matrix
+print(result$BXhat)                      # Estimated B matrix
 
 ## Visualization
 pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
-pp4 <- plotLatentPosition(result$Xhatprime, blocks, withCovariates = FALSE, latent, K, d)
-multiplot(result$pp1, result$pp3, pp2[[1]], pp4, cols = 2)
+pp4_simple <- plotLatentPosition(result$Xhatprime_simple, blocks, withCovariates = FALSE, latent, K, d)
+multiplot(result$pp1, result$pp3_simple, pp2[[1]], pp4_simple, cols = 2)
+
+pp4_weighted <- plotLatentPosition(result$Xhatprime_weighted, blocks, withCovariates = FALSE, latent, K, d)
+multiplot(result$pp1, result$pp3_weighted, pp2[[1]], pp4_weighted, cols = 2)
 
 }
 \seealso{

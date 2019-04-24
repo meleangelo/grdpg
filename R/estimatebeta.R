@@ -1,6 +1,6 @@
 #' Estimate beta
 #'
-#' Estimate beta (the effect of covariates).
+#' Estimate beta (the effect of covariates) using simple procedure.
 #'
 #' @import mclust
 #'
@@ -8,7 +8,7 @@
 #' @param cov A vector specifying possible value that each covariate could take. For example, if two binary covariates, then \code{cov <- c(2, 2)}.
 #' @param covariates_block Estimated covariates for each block. Should be a `k` by `c` matrix or dataframe where `k` is the number of blocks and `c` is the number of covariates.
 #'
-#' @return A list containing all estimated beta. Each element of the list, i.e. the length of the list equals to the number of covariates.
+#' @return A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.
 #'
 #' @author Cong Mu \email{placid8889@gmail.com}
 #'
