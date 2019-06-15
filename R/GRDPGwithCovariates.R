@@ -126,7 +126,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   result <- list()
 
   cat('\n\n', 'Embedding...')
-  embedding <- embed(A, dmax, maxit = maxit, work = work, tol = tol)
+  embedding <- SpectralEmbedding(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
   if (dhat == 1) {
@@ -147,7 +147,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   #   } else {
   #     What <- logit(Removecheck(Qhat))
   #   }
-  #   embedding2 <- embed(What, dmax, maxit = maxit)
+  #   embedding2 <- SpectralEmbedding(What, dmax, maxit = maxit)
   #   s2 <- embedding2$D
   #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
   #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
@@ -215,7 +215,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     } else {
       Aprime <- getAwithoutCovariates(A, betahat1, covariates)
     }
-    embedprime <- embed(Aprime, dmax, maxit = maxit, work = work, tol = tol)
+    embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
     sprime_simple <- embedprime$D
     dhatprime <- dimselect(sprime_simple)$elbow
     Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_simple[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
@@ -246,7 +246,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     } else {
       Aprime <- getAwithoutCovariates(A, betahat2, covariates)
     }
-    embedprime <- embed(Aprime, dmax, maxit = maxit, work = work, tol = tol)
+    embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
     sprime_weighted <- embedprime$D
     dhatprime <- dimselect(sprime_weighted)$elbow
     Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_weighted[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
@@ -264,10 +264,10 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   }
 
   if (plot) {
-    pp1 <- screeplot(s, 'Screeplot (with Covariates)')
+    pp1 <- scree(s, 'Screeplot (with Covariates)')
     pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
     if (postAnalysis) {
-      pp3 <- screeplot(sprime_simple, 'Screeplot (without Covariates)')
+      pp3 <- scree(sprime_simple, 'Screeplot (without Covariates)')
       result$pp3_simple <- pp3
     }
     multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))
@@ -276,10 +276,10 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   }
 
   if (plot) {
-    pp1 <- screeplot(s, 'Screeplot (with Covariates)')
+    pp1 <- scree(s, 'Screeplot (with Covariates)')
     pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
     if (postAnalysis) {
-      pp3 <- screeplot(sprime_weighted, 'Screeplot (without Covariates)')
+      pp3 <- scree(sprime_weighted, 'Screeplot (without Covariates)')
       result$pp3_weighted <- pp3
     }
     multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))

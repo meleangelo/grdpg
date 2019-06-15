@@ -53,7 +53,7 @@ estimatebeta2 <- function(BXhat, cov, covariates, clusters_cov) {
                 for (l2 in ind1) {
                   pi_1 <- weight$freq[weight$clusters==c[i]]
                   pi_2 <- weight$freq[weight$clusters==c[j1]]
-                  pi_z_1 <- t1$freq[t1$covariates==l1]
+                  pi_z_1 <- t1$freq[l1]
                   pi_z_2 <- t2$freq[t2$covariates==l2]
                   betahats[[k]] <- c(betahats[[k]], pi_1 * pi_2 * pi_z_1 * pi_z_2 * (BXhat[i,j1] - BXhat[i,j2]) / cov[k])
                 }

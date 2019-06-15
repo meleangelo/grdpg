@@ -87,7 +87,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   result <- list()
 
   cat('\n\n', 'Embedding...')
-  embedding <- embed(A, dmax, maxit = maxit, work = work, tol = tol)
+  embedding <- SpectralEmbedding(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
   if (dhat == 1) {
@@ -108,7 +108,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   #   } else {
   #     What <- logit(Removecheck(Qhat))
   #   }
-  #   embedding2 <- embed(What, dmax, maxit = maxit)
+  #   embedding2 <- SpectralEmbedding(What, dmax, maxit = maxit)
   #   s2 <- embedding2$D
   #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
   #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
@@ -153,7 +153,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   result$clusters_cov <- clusters_cov
 
   if (plot) {
-    pp1 <- screeplot(s, 'Screeplot (without Covariates)')
+    pp1 <- scree(s, 'Screeplot (without Covariates)')
     result$pp1 <- pp1
   }
 

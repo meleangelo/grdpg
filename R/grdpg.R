@@ -23,7 +23,7 @@
 #' \item{Estimation functions}
 #' \describe{
 #' \item{\code{\link{dimselect}}}{Select embeded dimension of latent position by finding the \sQuote{elbow} of the scree plot using \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.}
-#' \item{\code{\link{embed}}}{Spectral decomposition of the adjacency/Laplacian matrices of graphs.}
+#' \item{\code{\link{SpectralEmbedding}}}{Spectral decomposition of the adjacency/Laplacian matrices of graphs.}
 #' \item{\code{\link{getIpq}}}{Construct `Ipq` matrix for Generalized Random Dot Product Graph.}
 #' \item{\code{\link{getBlockCovariates}}}{Get the covariates for each block based on the frequency of each covariate within each block.}
 #' \item{\code{\link{estimatebeta}}}{Estimate beta (the effect of covariates) using simple procedure.}
@@ -36,7 +36,7 @@
 #' \item{Visualization functions}
 #' \describe{
 #' \item{\code{\link{multiplot}}}{Show multiple plots on one page for `ggplot2`.}
-#' \item{\code{\link{screeplot}}}{Scree plot of the singular values of a matrix.}
+#' \item{\code{\link{scree}}}{Scree plot of the singular values of a matrix.}
 #' \item{\code{\link{plotLatentPosition}}}{Plot latent position (with the effect of covariates).}
 #' }
 #' }
