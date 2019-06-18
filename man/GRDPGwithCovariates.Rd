@@ -120,7 +120,7 @@ pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = nco
 pp4_simple <- plotLatentPosition(result$Xhatprime_simple, blocks, withCovariates = FALSE, latent, K, d)
 multiplot(result$pp1, result$pp3_simple, pp2[[1]], pp4_simple, cols = 2)
 
-pp4_weighted <- plotLatentPosition(result$Xhatprime_weighted, blocks, withCovariates = FALSE, latent, K, d)
+pp4_weighted <- plotLatentPosition(as.matrix(result$Xhatprime_weighted[,nrow(latent)]), blocks, withCovariates = FALSE, latent, K, d)
 multiplot(result$pp1, result$pp3_weighted, pp2[[1]], pp4_weighted, cols = 2)
 
 }

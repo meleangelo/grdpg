@@ -89,7 +89,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   cat('\n\n', 'Embedding...')
   embedding <- SpectralEmbedding(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
-  dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
+  dhat <- ifelse(is.null(dhat), dimselect(s)$elbow[1]+1, dhat)
   if (dhat == 1) {
     Ipq <- matrix(1)
   } else {
@@ -110,7 +110,7 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   #   }
   #   embedding2 <- SpectralEmbedding(What, dmax, maxit = maxit)
   #   s2 <- embedding2$D
-  #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
+  #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow[1]+1, dhat)
   #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
   #   Ipq <- getIpq(temp$values, dhat2)
   # } else {

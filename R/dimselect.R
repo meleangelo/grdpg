@@ -3,6 +3,7 @@
 #' Select embeded dimension of latent position by finding the \sQuote{elbow} of the scree plot using \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.3768&rep=rep1&type=pdf}{profile likelihood}.
 #'
 #' @param s A vector of ordered singular values.
+#' @param n Number of elbows to be returned. 3 by default.
 #'
 #' @return A list containing the following:
 #' \describe{
@@ -17,7 +18,7 @@
 #' @export
 
 
-dimselect <- function(s) {
+dimselect <- function(s, n = 3) {
   if (!is.numeric(s)) {
     stop("Input need to be numeric (a vector of ordered singular values).")
   }
@@ -31,6 +32,9 @@ dimselect <- function(s) {
     lq[q] <- sum(dnorm(d[1:q ], mu1, sqrt(sigma2), log=TRUE)) + sum(dnorm(d[-(1:q)], mu2, sqrt(sigma2), log=TRUE))
   }
   q <- which.max(lq)
+  if (n > 1 && q < (p-1)) {
+    q <- c(q, q + dimselect(d[(q+1):p], n=n-1)$elbow)
+  }
   out <- list(value = d[q], elbow = q)
   return(out)
 }

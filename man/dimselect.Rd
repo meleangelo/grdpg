@@ -4,10 +4,12 @@
 \alias{dimselect}
 \title{Dimension Selection}
 \usage{
-dimselect(s)
+dimselect(s, n = 3)
 }
 \arguments{
 \item{s}{A vector of ordered singular values.}
+
+\item{n}{Number of elbows to be returned. 3 by default.}
 }
 \value{
 A list containing the following:

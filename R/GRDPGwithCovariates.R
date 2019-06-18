@@ -98,7 +98,7 @@
 #' pp4_simple <- plotLatentPosition(result$Xhatprime_simple, blocks, withCovariates = FALSE, latent, K, d)
 #' multiplot(result$pp1, result$pp3_simple, pp2[[1]], pp4_simple, cols = 2)
 #'
-#' pp4_weighted <- plotLatentPosition(result$Xhatprime_weighted, blocks, withCovariates = FALSE, latent, K, d)
+#' pp4_weighted <- plotLatentPosition(as.matrix(result$Xhatprime_weighted[,nrow(latent)]), blocks, withCovariates = FALSE, latent, K, d)
 #' multiplot(result$pp1, result$pp3_weighted, pp2[[1]], pp4_weighted, cols = 2)
 #'
 #' @author Cong Mu \email{placid8889@gmail.com}
@@ -128,7 +128,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   cat('\n\n', 'Embedding...')
   embedding <- SpectralEmbedding(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
-  dhat <- ifelse(is.null(dhat), dimselect(s)$elbow+1, dhat)
+  dhat <- ifelse(is.null(dhat), dimselect(s)$elbow[1]+1, dhat)
   if (dhat == 1) {
     Ipq <- matrix(1)
   } else {
@@ -149,7 +149,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   #   }
   #   embedding2 <- SpectralEmbedding(What, dmax, maxit = maxit)
   #   s2 <- embedding2$D
-  #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow+1, dhat)
+  #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow[1]+1, dhat)
   #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
   #   Ipq <- getIpq(temp$values, dhat2)
   # } else {
@@ -217,7 +217,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     }
     embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
     sprime_simple <- embedprime$D
-    dhatprime <- dimselect(sprime_simple)$elbow
+    dhatprime <- dimselect(sprime_simple)$elbow[1]
     Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_simple[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
     if (clusterMethod == 'GMM') {
       model2 <- Mclust(Xhatprime, G, verbose = FALSE)
@@ -248,7 +248,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     }
     embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
     sprime_weighted <- embedprime$D
-    dhatprime <- dimselect(sprime_weighted)$elbow
+    dhatprime <- dimselect(sprime_weighted)$elbow[1]
     Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_weighted[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
     if (clusterMethod == 'GMM') {
       model2 <- Mclust(Xhatprime, G, verbose = FALSE)
