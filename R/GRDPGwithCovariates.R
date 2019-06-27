@@ -129,12 +129,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   embedding <- SpectralEmbedding(A, dmax, maxit = maxit, work = work, tol = tol)
   s <- embedding$D
   dhat <- ifelse(is.null(dhat), dimselect(s)$elbow[1]+1, dhat)
-  if (dhat == 1) {
-    Ipq <- matrix(1)
-  } else {
-    temp <- eigen(A)
-    Ipq <- getIpq(temp$values, dhat)
-  }
+  Ipq <- getIpq(A, dhat)
 
   result$iter <- embedding$iter
   result$mprod <- embedding$mprod
@@ -151,7 +146,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   #   s2 <- embedding2$D
   #   dhat2 <- ifelse(is.null(dhat), dimselect(s2)$elbow[1]+1, dhat)
   #   Xhat <- embedding2$X[,1:dhat2] %*% sqrt(diag(s2[1:dhat2], nrow=dhat2, ncol=dhat2))
-  #   Ipq <- getIpq(temp$values, dhat2)
+  #   Ipq <- getIpq(A, dhat2)
   # } else {
   #   Xhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
   # }
