@@ -2,8 +2,11 @@
 #'
 #' Construct `Ipq` matrix for Generalized Random Dot Product Graph.
 #'
-#' @param s Eigenvalues of a matrix.
+#' @import RSpectra
+#'
+#' @param A A square matrix.
 #' @param d Embeded dimension.
+#' @param method Method used to compute eigenvalues. Coule be `RSpectra` (default) or `eigen`.
 #'
 #' @return A `d` by `d` diagonal matrix where `d` is the embeded dimension with 1 and -1 on the diagonal.
 #'
@@ -11,24 +14,50 @@
 #'
 #' @references Rubin-Delanchy, P., Priebe, C. E., Tang, M., & Cape, J. (2017). A statistical interpretation of spectral embedding: the generalised random dot product graph. \emph{arXiv preprint \href{https://arxiv.org/abs/1709.05506}{arXiv:1709.05506}}.
 #'
-#' @seealso \code{\link{grdpg}}
+#' @seealso \code{\link{grdpg}}, \code{\link{eigs}}, \code{\link{eigen}}
 #'
 #' @export
 
 
-getIpq <- function(s, d) {
-  if (length(s) < d) {
-    stop("The length of `s` should be greater than `d`.")
+getIpq <- function(A, d, method = 'RSpectra') {
+  if (!(method %in% c('RSpectra', 'eigen'))) {
+    print("Unrecognized `method`, would use 'RSpectra' by default.")
   }
-  p <- which(s<abs(s[length(s)]))[1]
-  if (is.na(p)) {
-    Ipq <- diag(rep(1,d))
-  } else if (p > d) {
-    Ipq <- diag(rep(1,d))
+
+  if (d == 1) {
+    Ipq <- matrix(1)
+  } else if (method == 'eigen') {
+    temp <- eigen(A)
+    s <- temp$values
+    if (length(s) < d) {
+      stop("The length of `s` should be greater than `d`.")
+    }
+    p <- which(s<abs(s[length(s)]))[1]
+    if (is.na(p)) {
+      Ipq <- diag(rep(1,d))
+    } else if (p > d) {
+      Ipq <- diag(rep(1,d))
+    } else {
+      Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+    }
   } else {
-    Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+    cols <- ncol(A)
+    temp1 <- eigs_sym(matrix(as.numeric(A), ncol = cols), d, 'LA')
+    s1 <- temp1$values
+    temp2 <- eigs_sym(matrix(as.numeric(A), ncol = cols), d, 'SA')
+    s2 <- temp2$values
+    p <- which(s1<abs(s2[length(s2)]))[1]
+    if (is.na(p)) {
+      Ipq <- diag(rep(1,d))
+    } else if (p > d) {
+      Ipq <- diag(rep(1,d))
+    } else {
+      Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+    }
   }
+
   return(Ipq)
 }
+
 
 

@@ -4,12 +4,14 @@
 \alias{getIpq}
 \title{Get \code{Ipq} Matrix for GRDPG}
 \usage{
-getIpq(s, d)
+getIpq(A, d, method = "RSpectra")
 }
 \arguments{
-\item{s}{Eigenvalues of a matrix.}
+\item{A}{A square matrix.}
 
 \item{d}{Embeded dimension.}
+
+\item{method}{Method used to compute eigenvalues. Coule be \code{RSpectra} (default) or \code{eigen}.}
 }
 \value{
 A \code{d} by \code{d} diagonal matrix where \code{d} is the embeded dimension with 1 and -1 on the diagonal.
@@ -21,7 +23,7 @@ Construct \code{Ipq} matrix for Generalized Random Dot Product Graph.
 Rubin-Delanchy, P., Priebe, C. E., Tang, M., & Cape, J. (2017). A statistical interpretation of spectral embedding: the generalised random dot product graph. \emph{arXiv preprint \href{https://arxiv.org/abs/1709.05506}{arXiv:1709.05506}}.
 }
 \seealso{
-\code{\link{grdpg}}
+\code{\link{grdpg}}, \code{\link{eigs}}, \code{\link{eigen}}
 }
 \author{
 Cong Mu \email{placid8889@gmail.com}
