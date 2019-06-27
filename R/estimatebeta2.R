@@ -59,24 +59,24 @@ estimatebeta2 <- function(BXhat, cov, covariates, clusters_cov) {
                   pi_z_1 <- t1$freq[l1]
                   pi_z_2 <- t2$freq[t2$covariates==l2]
                   temp <- setdiff(1:ncol(covariates), k)
-                  pi_0 <- 0
-                  if (length(temp) > 1) {
+                  pi_0 <- 1
+                  if (length(temp) > 0) {
                     for (l in temp) {
+                      temp_pi_0 <- 0
                       t3 <- filter(weights_cov[[l]], clusters_cov == j1)
                       t4 <- filter(weights_cov[[l]], clusters_cov == j2)
                       for (t_cov in unique(t3$covariates)) {
                         if (t_cov %in% t4$covariates) {
-                          pi_0 <- pi_0 + sum(t3$freq[t3$covariates==t_cov]) * sum(t4$freq[t4$covariates==t_cov])
+                          temp_pi_0 <- temp_pi_0 + sum(t3$freq[t3$covariates==t_cov]) * sum(t4$freq[t4$covariates==t_cov])
                         } else {
-                          pi_0 <- pi_0 + 0
+                          temp_pi_0 <- temp_pi_0 + 0
                         }
                       }
+                      pi_0 <- c(pi_0, temp_pi_0)
                     }
-                  } else {
-                    pi_0 <- 1
                   }
                   betahats[[k]] <- c(betahats[[k]], BXhat[i,j1] - BXhat[i,j2])
-                  pis[[k]] <- c(pis[[k]], pi_0 * pi_cov_1 * pi_cov_2 * pi_z_1 * pi_z_2)
+                  pis[[k]] <- c(pis[[k]], prod(pi_0) * pi_cov_1 * pi_cov_2 * pi_z_1 * pi_z_2)
                 }
               }
             }
@@ -90,6 +90,9 @@ estimatebeta2 <- function(BXhat, cov, covariates, clusters_cov) {
   }
   return(betahats)
 }
+
+
+
 
 
 
