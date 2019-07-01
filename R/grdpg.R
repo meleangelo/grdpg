@@ -7,6 +7,7 @@
 #' \item{Utility functions}
 #' \describe{
 #' \item{\code{\link{logit}}}{Logit function.}
+#' \item{\code{\link{logitderivative}}}{Derivative of logit Function.}
 #' \item{\code{\link{sigmoid}}}{Sigmoid function.}
 #' \item{\code{\link{BFcheck}}}{Check whether all entries of the estimated probabiltiy matrix are between 0 and 1. Set the ones that not greater than 0 to be a lower bound and the ones that not less than 1 to be a upper bound.}
 #' \item{\code{\link{Removecheck}}}{Check whether all entries of the estimated probabiltiy matrix are between 0 and 1. Remove all rows and columns that contain values that are not greater than 0 and not less than 1.}

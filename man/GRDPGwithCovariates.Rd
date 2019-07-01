@@ -6,8 +6,8 @@
 \usage{
 GRDPGwithCovariates(A, covariates, link = "identity",
   clusterMethod = "GMM", G = 1:9, dmax = 10, dhat = NULL,
-  maxit = 1000, work = 12, tol = 1e-05, check = "BF",
-  postAnalysis = TRUE, plot = TRUE, ...)
+  maxit = 1000, work = 12, tol = 1e-05, check = "BF", sd = TRUE,
+  rho = 1, postAnalysis = TRUE, plot = TRUE, ...)
 }
 \arguments{
 \item{A}{An adjacency matrix.}
@@ -32,6 +32,10 @@ GRDPGwithCovariates(A, covariates, link = "identity",
 
 \item{check}{Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).}
 
+\item{sd}{Whether to compute standard errors of the estimate of beta. \code{TRUE} by default.}
+
+\item{rho}{Sparsity coefficient. Coule be \code{1} (by default) or \code{0}.}
+
 \item{postAnalysis}{Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.}
 
 \item{plot}{Whether to show scree plot and latent position. \code{TRUE} by default.}
@@ -43,7 +47,11 @@ A list containing the following:
 \describe{
 \item{\code{Xhat}}{An \code{n} by \code{d} matrix indicating the estimated latent positions, where \code{n} is the number nodes and \code{d} is the embeded dimension.}
 \item{\code{betahat_simple}}{A \code{c}-vector indicating the effect of covariates where \code{c} is the number of covariates using simple procedure.}
+\item{\code{betahat_simple_unbiased}}{A \code{c}-vector indicating the effect (unbiased estimate) of covariates where \code{c} is the number of covariates using simple procedure.}
+\item{\code{sd2_simple}}{A \code{c}-vector indicating the variance of \code{betahat_simple} where \code{c} is the number of covariates using simple procedure.}
 \item{\code{betahat_weighted}}{A \code{c}-vector indicating the effect of covariates where \code{c} is the number of covariates using weighted procedure.}
+\item{\code{betahat_weighted_unbiased}}{A \code{c}-vector indicating the effect (unbiased estimate) of covariates where \code{c} is the number of covariates using weighted procedure.}
+\item{\code{sd2_weighted}}{A \code{c}-vector indicating the variance of \code{betahat_weighted} where \code{c} is the number of covariates using weighted procedure.}
 \item{\code{BXhat}}{A matrix indicating the estimated block probability matrix.}
 \item{\code{clusters_cov}}{An \code{n}-vecotr indicating the block label of each nodes with the effect of covariates where \code{n} is the number nodes.}
 \item{\code{Ipq}}{\code{Ipq} matrix for (G)RDPG, see \link{getIpq}.}
@@ -109,11 +117,15 @@ result <- GRDPGwithCovariates(A, covariates)
 print(adjustedRandIndex(blocks_cov, result$clusters_cov))          # ARI with covariates
 print(adjustedRandIndex(blocks, result$clusters_simple))           # ARI without covariates associated with beta_simple
 print(adjustedRandIndex(blocks, result$clusters_weighted))         # ARI without covariates associated with beta_weighted
-print(beta)                              # True beta
-print(result$betahat_simple)             # Estimated beta using simple procedure
-print(result$betahat_weighted)           # Estimated beta using weighted procedure
-print(B)                                 # True B matrix
-print(result$BXhat)                      # Estimated B matrix
+print(beta)                                       # True beta
+print(result$betahat_simple)                      # Estimated beta using simple procedure
+print(result$betahat_simple_unbiased)             # Estimated beta (unbiased) using simple procedure
+print(result$sd2_simple)                          # Variance of estimated beta using simple procedure
+print(result$betahat_weighted)                    # Estimated beta using weighted procedure
+print(result$betahat_weighted_unbiased)           # Estimated beta (unbiased) using weighted procedure
+print(result$sd2_weighted)                        # Variance of estimated beta using weighted procedure
+print(B)                                          # True B matrix
+print(result$BXhat)                               # Estimated B matrix
 
 ## Visualization
 pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)

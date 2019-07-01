@@ -23,6 +23,8 @@
 #' @param work Working subspace dimension for `\link[irlba]{irlba}`.
 #' @param tol Stopping tolerance for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
+#' @param sd Whether to compute standard errors of the estimate of beta. \code{TRUE} by default.
+#' @param rho Sparsity coefficient. Coule be `1` (by default) or `0`.
 #' @param postAnalysis Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
 #' @param seed Random seed for reproductivity. 2019 by default.
@@ -57,7 +59,7 @@
 #' @export
 
 
-simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
+simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', sd = TRUE, rho = 1, postAnalysis = TRUE, plot = TRUE, seed = 2019, ...) {
   cat('\n\n', 'Simulation: (G)RDPG with Covariates', '\n\n\n', 'Setting Up....')
 
   ## Set Up
@@ -83,7 +85,7 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   }
 
   ## Estimation
-  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, G, dmax, dhat, maxit, work, tol, check, postAnalysis, plot)
+  result <- GRDPGwithCovariates(A, covariates, link, clusterMethod, G, dmax, dhat, maxit, work, tol, check, sd, rho, postAnalysis, plot)
 
   ## Visualization
   pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
@@ -98,7 +100,9 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   cat('****************************************************************************\n')
   cat('Latent:\n')
   print(latent)
-  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\nbetahat_simple:', result$betahat_simple, '\nbetahat_weighted:', result$betahat_weighted, '\n')
+  cat('K:', K, '\nn:', n, '\nbeta:', '\n')
+  cat('betahat_simple:', result$betahat_simple, '\nbetahat_simple_unbiased:', result$betahat_simple_unbiased, '\nsd2_simple:', result$sd2_simple, '\n')
+  cat('betahat_weighted:', result$betahat_weighted, '\nbetahat_weighted_unbiased:', result$betahat_weighted_unbiased, '\nsd2_weighted:', result$sd2_weighted, '\n')
   cat('B:\n')
   print(B)
   cat('BXhat:\n')

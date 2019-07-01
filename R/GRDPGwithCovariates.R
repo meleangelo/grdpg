@@ -16,6 +16,8 @@
 #' @param work Working subspace dimension for `\link[irlba]{irlba}`.
 #' @param tol Stopping tolerance for `\link[irlba]{irlba}`.
 #' @param check Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).
+#' @param sd Whether to compute standard errors of the estimate of beta. \code{TRUE} by default.
+#' @param rho Sparsity coefficient. Coule be `1` (by default) or `0`.
 #' @param postAnalysis Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.
 #' @param plot Whether to show scree plot and latent position. \code{TRUE} by default.
 #' @param ... Additional parameters.
@@ -24,7 +26,11 @@
 #' \describe{
 #' \item{`Xhat`}{An `n` by `d` matrix indicating the estimated latent positions, where `n` is the number nodes and `d` is the embeded dimension.}
 #' \item{`betahat_simple`}{A `c`-vector indicating the effect of covariates where `c` is the number of covariates using simple procedure.}
+#' \item{`betahat_simple_unbiased`}{A `c`-vector indicating the effect (unbiased estimate) of covariates where `c` is the number of covariates using simple procedure.}
+#' \item{`sd2_simple`}{A `c`-vector indicating the variance of `betahat_simple` where `c` is the number of covariates using simple procedure.}
 #' \item{`betahat_weighted`}{A `c`-vector indicating the effect of covariates where `c` is the number of covariates using weighted procedure.}
+#' \item{`betahat_weighted_unbiased`}{A `c`-vector indicating the effect (unbiased estimate) of covariates where `c` is the number of covariates using weighted procedure.}
+#' \item{`sd2_weighted`}{A `c`-vector indicating the variance of `betahat_weighted` where `c` is the number of covariates using weighted procedure.}
 #' \item{`BXhat`}{A matrix indicating the estimated block probability matrix.}
 #' \item{`clusters_cov`}{An `n`-vecotr indicating the block label of each nodes with the effect of covariates where `n` is the number nodes.}
 #' \item{`Ipq`}{`Ipq` matrix for (G)RDPG, see \link{getIpq}.}
@@ -87,11 +93,15 @@
 #' print(adjustedRandIndex(blocks_cov, result$clusters_cov))          # ARI with covariates
 #' print(adjustedRandIndex(blocks, result$clusters_simple))           # ARI without covariates associated with beta_simple
 #' print(adjustedRandIndex(blocks, result$clusters_weighted))         # ARI without covariates associated with beta_weighted
-#' print(beta)                              # True beta
-#' print(result$betahat_simple)             # Estimated beta using simple procedure
-#' print(result$betahat_weighted)           # Estimated beta using weighted procedure
-#' print(B)                                 # True B matrix
-#' print(result$BXhat)                      # Estimated B matrix
+#' print(beta)                                       # True beta
+#' print(result$betahat_simple)                      # Estimated beta using simple procedure
+#' print(result$betahat_simple_unbiased)             # Estimated beta (unbiased) using simple procedure
+#' print(result$sd2_simple)                          # Variance of estimated beta using simple procedure
+#' print(result$betahat_weighted)                    # Estimated beta using weighted procedure
+#' print(result$betahat_weighted_unbiased)           # Estimated beta (unbiased) using weighted procedure
+#' print(result$sd2_weighted)                        # Variance of estimated beta using weighted procedure
+#' print(B)                                          # True B matrix
+#' print(result$BXhat)                               # Estimated B matrix
 #'
 #' ## Visualization
 #' pp2 <- plotLatentPosition(result$Xhat, blocks, withCovariates = TRUE, dhat = ncol(result$Xhat), covariates)
@@ -108,7 +118,7 @@
 #' @export
 
 
-GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', postAnalysis = TRUE, plot = TRUE, ...) {
+GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod = 'GMM', G = 1:9, dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05, check = 'BF', sd = TRUE, rho = 1, postAnalysis = TRUE, plot = TRUE, ...) {
   if (nrow(A) != nrow(covariates) || ncol(A) != nrow(covariates)) {
     stop("The number of rows/columns in `A` should equal to the number of rows in `covariates`.")
   }
@@ -185,15 +195,23 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
     clusters_cov <- model$cluster
     covariates_block <- getBlockCovariates(covariates, clusters_cov)
   }
-  betahats1 <- estimatebeta(BXhat, cov, covariates_block)
-  betahat1 <- sapply(betahats1, mean)
+  result1 <- estimatebeta(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov, link, check, sd, rho)
+  betahat1 <- sapply(result1$betahats, mean)
+  betahat1_unbiased <- betahat1 - sapply(result1$bias, mean)
+  sd21 <- sapply(result1$sd2s, mean)
 
-  betahats2 <- estimatebeta2(BXhat, cov, covariates, clusters_cov)
-  betahat2 <- sapply(betahats2, sum)
+  result2 <- estimatebeta2(Xhat, muhats, Ipq, cov, covariates, clusters_cov, link, check, sd, rho)
+  betahat2 <- sapply(Map('*',result2$betahats,result2$pis), sum)
+  betahat2_unbiased <- betahat2 - sapply(Map('*',result2$bias,result2$pis), sum)
+  sd22 <- sapply(Map('*',result2$sd2s,result2$pis), sum)
 
   result$BXhat <- BXhat
   result$betahat_simple <- betahat1
+  result$betahat_simple_unbiased <- betahat1_unbiased
+  result$sd2_simple <- sd21
   result$betahat_weighted <- betahat2
+  result$betahat_weighted_unbiased <- betahat2_unbiased
+  result$sd2_weighted <- sd22
   result$clusters_cov <- clusters_cov
 
   if (postAnalysis) {

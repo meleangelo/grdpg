@@ -4,17 +4,37 @@
 \alias{estimatebeta}
 \title{Estimate beta}
 \usage{
-estimatebeta(BXhat, cov, covariates_block)
+estimatebeta(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
+  link = "identity", check = "BF", sd = TRUE, rho = 1)
 }
 \arguments{
-\item{BXhat}{Estimated block probability matrix. Should be a \code{k} by \code{k} matrix where \code{k} is the number of blocks.}
+\item{Xhat}{Estimated latent positions, should be an \code{n} by \code{d} matrix where \code{n} is the number nodes and \code{d} is the embeded dimension.}
+
+\item{muhats}{The center of the latent position for each block. Should be a \code{d} by \code{K} matrix where \code{d} is the embed dimension and \code{K} is the number of blocks.}
+
+\item{Ipq}{\code{Ipq} matrix for GRDPG. See \link{getIpq}.}
 
 \item{cov}{A vector specifying possible value that each covariate could take. For example, if two binary covariates, then \code{cov <- c(2, 2)}.}
 
 \item{covariates_block}{Estimated covariates for each block. Should be a \code{k} by \code{c} matrix or dataframe where \code{k} is the number of blocks and \code{c} is the number of covariates.}
+
+\item{clusters_cov}{An \code{n}-vecotr indicating the block label of each nodes with the effect of covariates where \code{n} is the number nodes.}
+
+\item{link}{Link function. Could be 'identity' (by default) or 'logit'.}
+
+\item{check}{Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).}
+
+\item{sd}{Whether to compute standard errors of the estimate of beta. \code{TRUE} by default.}
+
+\item{rho}{Sparsity coefficient. Coule be \code{1} (by default) or \code{0}.}
 }
 \value{
-A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.
+A list containing the following:
+\describe{
+\item{\code{betahats}}{A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.}
+\item{\code{bias}}{If \code{sd==TRUE}, A list containing all bias terms for \code{betahats} in the CLT. The length of the list equals to the number of covariates. Using \code{sapply(bias, mean)} to get the bias of each beta and using \code{sapply(betahats, mean) - sapply(bias, mean)} to get the unbiased estimate of each beta.}
+\item{\code{sd2s}}{If \code{sd==TRUE}, A list containing all variances of \code{betahats}. The length of the list equals to the number of covariates. Using \code{sapply(sd2s, mean)} to get the variance of each beta.}
+}
 }
 \description{
 Estimate beta (the effect of covariates) using simple procedure.

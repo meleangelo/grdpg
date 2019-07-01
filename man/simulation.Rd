@@ -7,7 +7,8 @@
 simulation(n, K, d, latent, block_size, beta, cov, block_size_cov,
   covariates, link = "identity", clusterMethod = "GMM", G = 1:9,
   dmax = 10, dhat = NULL, maxit = 1000, work = 12, tol = 1e-05,
-  check = "BF", postAnalysis = TRUE, plot = TRUE, seed = 2019, ...)
+  check = "BF", sd = TRUE, rho = 1, postAnalysis = TRUE,
+  plot = TRUE, seed = 2019, ...)
 }
 \arguments{
 \item{n}{Number of nodes.}
@@ -45,6 +46,10 @@ simulation(n, K, d, latent, block_size, beta, cov, block_size_cov,
 \item{tol}{Stopping tolerance for \code{\link[irlba]{irlba}}.}
 
 \item{check}{Method to check probability matrix. Could be 'BF' (by default, see \link{BFcheck}) or 'Remove' (see \link{Removecheck}).}
+
+\item{sd}{Whether to compute standard errors of the estimate of beta. \code{TRUE} by default.}
+
+\item{rho}{Sparsity coefficient. Coule be \code{1} (by default) or \code{0}.}
 
 \item{postAnalysis}{Whether to do some post analysis such as removing the effect of covariates. \code{TRUE} by default.}
 
