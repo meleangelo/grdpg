@@ -170,13 +170,13 @@ estimatebeta2 <- function(Xhat, muhats, Ipq, cov, covariates, clusters_cov, link
                     sigma2j2j2 <- 4*theta[j2,j2]*(1-theta[j2,j2])*zeta[j2,j2]^2+4*sigma2j2j22+2*sigma2j2j23
                     covij1ij2 <- cov1 + cov2 + cov3 + cov4 + cov5 + cov6 + cov7 + cov8 + cov9
                     if (link == 'logit') {
-                      psiij1 <- psiij1 * logitderivative(theta[i,j1])
-                      psiij2 <- psiij2 * logitderivative(theta[i,j2])
-                      sigma2ij1 <- sigma2ij1 * logitderivative(theta[i,j1])^2
-                      sigma2ij2 <- sigma2ij2 * logitderivative(theta[i,j2])^2
-                      sigma2j1j1 <- sigma2j1j1 * logitderivative(theta[j1,j1])^2
-                      sigma2j2j2 <- sigma2j2j2 * logitderivative(theta[j2,j2])^2
-                      covij1ij2 <- covij1ij2 * logitderivative(theta[i,j1]) * logitderivative(theta[i,j2])
+                      psiij1 <- psiij1 * logitderivative(BFcheck(theta[i,j1]))
+                      psiij2 <- psiij2 * logitderivative(BFcheck(theta[i,j2]))
+                      sigma2ij1 <- sigma2ij1 * logitderivative(BFcheck(theta[i,j1]))^2
+                      sigma2ij2 <- sigma2ij2 * logitderivative(BFcheck(theta[i,j2]))^2
+                      sigma2j1j1 <- sigma2j1j1 * logitderivative(BFcheck(theta[j1,j1]))^2
+                      sigma2j2j2 <- sigma2j2j2 * logitderivative(BFcheck(theta[j2,j2]))^2
+                      covij1ij2 <- covij1ij2 * logitderivative(BFcheck(theta[i,j1])) * logitderivative(BFcheck(theta[i,j2]))
                     }
                     if (i == j1) {
                       tempsd <- sigma2j1j1 + sigma2ij2 - 2 * covij1ij2
