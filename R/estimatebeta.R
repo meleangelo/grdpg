@@ -54,6 +54,7 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
     }
   }
   theta <- t(muhats) %*% Ipq %*% muhats
+  theta <- BFcheck(theta)
   eta <- getWeight(clusters_cov)$freq
   delta <- 0
   for (kk in 1:length(eta)) {
