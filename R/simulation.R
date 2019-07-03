@@ -100,7 +100,7 @@ simulation <- function(n, K, d, latent, block_size, beta, cov, block_size_cov, c
   cat('****************************************************************************\n')
   cat('Latent:\n')
   print(latent)
-  cat('K:', K, '\nn:', n, '\nbeta:', '\n')
+  cat('K:', K, '\nn:', n, '\nbeta:', beta, '\n')
   cat('betahat_simple:', result$betahat_simple, '\nbetahat_simple_unbiased:', result$betahat_simple_unbiased, '\nsd2_simple:', result$sd2_simple, '\n')
   cat('betahat_weighted:', result$betahat_weighted, '\nbetahat_weighted_unbiased:', result$betahat_weighted_unbiased, '\nsd2_weighted:', result$sd2_weighted, '\n')
   cat('B:\n')
