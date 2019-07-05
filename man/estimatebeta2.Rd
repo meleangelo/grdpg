@@ -35,6 +35,7 @@ A list containing the following:
 \item{\code{pis}}{A list containing all weight of each pair. The length of the list equals to the number of covariates.}
 \item{\code{bias}}{If \code{sd==TRUE}, A list containing all bias terms for \code{betahats} in the CLT. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',bias,pis), sum)} to get the bias of each beta and using \code{sapply(Map('*',betahats,pis), sum) - sapply(Map('*',bias,pis), sum)} to get the unbiased estimate of each beta.}
 \item{\code{sd2s}}{If \code{sd==TRUE}, A list containing all variances of \code{betahats}. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',sd2s,pis), sum)} to get the variance of each beta.}
+\item{\code{...}}{If \code{sd==TRUE}, Lists containing all \code{psi}, \code{sigma2} and \code{covariances}. The length of the list equals to the number of covariates.}
 }
 }
 \description{

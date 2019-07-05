@@ -20,6 +20,7 @@
 #' \item{`betahats`}{A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.}
 #' \item{`bias`}{If \code{sd==TRUE}, A list containing all bias terms for `betahats` in the CLT. The length of the list equals to the number of covariates. Using \code{sapply(bias, mean)} to get the bias of each beta and using \code{sapply(betahats, mean) - sapply(bias, mean)} to get the unbiased estimate of each beta.}
 #' \item{`sd2s`}{If \code{sd==TRUE}, A list containing all variances of `betahats`. The length of the list equals to the number of covariates. Using \code{sapply(sd2s, mean)} to get the variance of each beta.}
+#' \item{`...`}{If \code{sd==TRUE}, Lists containing all `psi`, `sigma2` and `covariances`. The length of the list equals to the number of covariates.}
 #' }
 #'
 #' @author Cong Mu \email{placid8889@gmail.com}
@@ -65,6 +66,13 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
   if (sd) {
     bias <- vector('list', ncol(covariates_block))
     sd2s <- vector('list', ncol(covariates_block))
+    psiil1s <- vector('list', ncol(covariates_block))
+    psiil2s <- vector('list', ncol(covariates_block))
+    sigma2il1s <- vector('list', ncol(covariates_block))
+    sigma2il2s <- vector('list', ncol(covariates_block))
+    sigma2l1l1s <- vector('list', ncol(covariates_block))
+    sigma2l2l2s <- vector('list', ncol(covariates_block))
+    covil1il2s <- vector('list', ncol(covariates_block))
   }
   model2 <- Mclust(diag(BXhat), ncol(BXhat)/prod(cov), verbose = FALSE)
   c <- getClusters(data.frame(model2$z))
@@ -152,6 +160,13 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
                   sigma2l2l2 <- sigma2l2l2 * logitderivative(BFcheck(theta[l2,l2]))^2
                   covil1il2 <- covil1il2 * logitderivative(BFcheck(theta[i,l1])) * logitderivative(BFcheck(theta[i,l2]))
                 }
+                psiil1s[[k]] <- c(psiil1s[[k]], psiil1)
+                psiil2s[[k]] <- c(psiil1s[[k]], psiil2)
+                sigma2il1s[[k]] <- c(sigma2il1s[[k]], sigma2il1)
+                sigma2il2s[[k]] <- c(sigma2il2s[[k]], sigma2il2)
+                sigma2l1l1s[[k]] <- c(sigma2l1l1s[[k]], sigma2l1l1)
+                sigma2l2l2s[[k]] <- c(sigma2l2l2s[[k]], sigma2l2l2)
+                covil1il2s[[k]] <- c(covil1il2s[[k]], covil1il2)
                 if (i == l1) {
                   tempsd <- sigma2l1l1 + sigma2il2 - 2 * covil1il2
                 } else if (i == l2) {
@@ -173,11 +188,24 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
   if (sd) {
     result$bias <- bias
     result$sd2s <- sd2s
+    result$psiil1s <- psiil1s
+    result$psiil2s <- psiil2s
+    result$sigma2il1s <- sigma2il1s
+    result$sigma2il2s <- sigma2il2s
+    result$sigma2l1l1s <- sigma2l1l1s
+    result$sigma2l2l2s <- sigma2l2l2s
+    result$covil1il2s <- covil1il2s
   }
 
   return(result)
 
 }
+
+
+
+
+
+
 
 
 
