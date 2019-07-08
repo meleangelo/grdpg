@@ -54,16 +54,16 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
       BXhat <- logit(Removecheck(BXhat))
     }
   }
-  theta <- t(muhats) %*% Ipq %*% muhats
-  theta <- BFcheck(theta)
-  eta <- getWeight(clusters_cov)$freq
-  delta <- 0
-  for (kk in 1:length(eta)) {
-    delta <- delta + eta[kk] * muhats[,kk,drop=FALSE] %*% t(muhats[,kk,drop=FALSE])
-  }
-  zeta <- t(muhats) %*% solve(delta) %*% muhats
   betahats <- vector('list', ncol(covariates_block))
   if (sd) {
+    theta <- t(muhats) %*% Ipq %*% muhats
+    theta <- BFcheck(theta)
+    eta <- getWeight(clusters_cov)$freq
+    delta <- 0
+    for (kk in 1:length(eta)) {
+      delta <- delta + eta[kk] * muhats[,kk,drop=FALSE] %*% t(muhats[,kk,drop=FALSE])
+    }
+    zeta <- t(muhats) %*% solve(delta) %*% muhats
     bias <- vector('list', ncol(covariates_block))
     sd2s <- vector('list', ncol(covariates_block))
     psiil1s <- vector('list', ncol(covariates_block))
@@ -200,14 +200,6 @@ estimatebeta <- function(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov,
   return(result)
 
 }
-
-
-
-
-
-
-
-
 
 
 
