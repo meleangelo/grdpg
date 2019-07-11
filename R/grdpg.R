@@ -37,7 +37,7 @@
 #' \item{Visualization functions}
 #' \describe{
 #' \item{\code{\link{multiplot}}}{Show multiple plots on one page for `ggplot2`.}
-#' \item{\code{\link{scree}}}{Scree plot of the singular values of a matrix.}
+#' \item{\code{\link{scree}}}{Scree plot of the eigenvalues (singular values) of a matrix.}
 #' \item{\code{\link{plotLatentPosition}}}{Plot latent position (with the effect of covariates).}
 #' }
 #' }

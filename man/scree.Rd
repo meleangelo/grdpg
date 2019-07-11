@@ -2,29 +2,33 @@
 % Please edit documentation in R/scree.R
 \name{scree}
 \alias{scree}
-\title{Scree Plot of Singular Values}
+\title{Scree Plot of Eigenvalues (Singular Values)}
 \usage{
-scree(s, title = "Screeplot", xlab = "Rank", ylab = "Singular Value")
+scree(s, title = "Screeplot", xlab = "Rank in Magnitude",
+  ylab = "Eigenvalue in Magnitude")
 }
 \arguments{
-\item{s}{Singular values of a matrix.}
+\item{s}{Eigenvalues (singular values) of a matrix.}
 
 \item{title}{Title of the plot. 'Screeplot' by default.}
 
-\item{xlab}{Label of x-axis. 'Rank' by default.}
+\item{xlab}{Label of x-axis. 'Rank in Magnitude' by default.}
 
-\item{ylab}{Label of y-axis. 'Singular Value' by default.}
+\item{ylab}{Label of y-axis. 'Eigenvalue in Magnitude' by default.}
 }
 \value{
 A \code{ggplo2} object.
 }
 \description{
-Scree plot of the singular values of a matrix.
+Scree plot of the eigenvalues (singular values) of a matrix.
 }
 \examples{
 X <- matrix(runif(100), nrow = 10)
+X <- X + t(X)
 dicomp <- svd(X)
-scree(dicomp$d)
+dicomp2 <- eigen(X)
+scree(dicomp$d, xlab = 'Rank', ylab = 'Singular Value')
+scree(dicomp2$values)
 
 }
 \seealso{

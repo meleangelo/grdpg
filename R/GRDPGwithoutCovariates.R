@@ -148,7 +148,15 @@ GRDPGwithoutCovariates <- function(A, link = 'identity', clusterMethod = 'GMM', 
   result$clusters_cov <- clusters_cov
 
   if (plot) {
-    pp1 <- scree(s, 'Screeplot (without Covariates)')
+    cols <- ncol(A)
+    temp1 <- eigs_sym(matrix(as.numeric(A), ncol = cols), dmax, 'LA')
+    s1 <- temp1$values
+    temp2 <- eigs_sym(matrix(as.numeric(A), ncol = cols), dmax, 'SA')
+    s2 <- temp2$values
+    tempdat <- data.frame(raw = c(s1,s2)) %>%
+      mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+      arrange(desc(s))
+    pp1 <- scree(tempdat$raw[1:dmax], 'Screeplot (without Covariates)')
     result$pp1 <- pp1
   }
 

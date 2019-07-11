@@ -215,7 +215,7 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   result$clusters_cov <- clusters_cov
 
   if (postAnalysis) {
-    cat('\n\n', 'Post Analysis using beta_simple...')
+    cat('\n\n', 'Post Analysis using beta_simple and beta_weighted...')
     if (link == 'logit') {
       Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
       Qhat <- Yhat %*% Ipq %*% t(Yhat)
@@ -224,81 +224,79 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
       } else {
         What <- logit(Removecheck(Qhat))
       }
-      Aprime <- getAwithoutCovariates(What, betahat1, covariates)
+      Aprime_simple <- getAwithoutCovariates(What, betahat1, covariates)
+      Aprime_weighted <- getAwithoutCovariates(What, betahat2, covariates)
     } else {
-      Aprime <- getAwithoutCovariates(A, betahat1, covariates)
+      Aprime_simple <- getAwithoutCovariates(A, betahat1, covariates)
+      Aprime_weighted <- getAwithoutCovariates(A, betahat2, covariates)
     }
-    embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
-    sprime_simple <- embedprime$D
-    dhatprime <- dimselect(sprime_simple)$elbow[1]
-    Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_simple[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
+    embedprime_simple <- SpectralEmbedding(Aprime_simple, dmax, maxit = maxit, work = work, tol = tol)
+    embedprime_weighted <- SpectralEmbedding(Aprime_weighted, dmax, maxit = maxit, work = work, tol = tol)
+    sprime_simple <- embedprime_simple$D
+    sprime_weighted <- embedprime_weighted$D
+    dhatprime_simple <- dimselect(sprime_simple)$elbow[1]
+    dhatprime_weighted <- dimselect(sprime_weighted)$elbow[1]
+    Xhatprime_simple <- embedprime_simple$X[,1:dhatprime_simple] %*% sqrt(diag(sprime_simple[1:dhatprime_simple], nrow=dhatprime_simple, ncol=dhatprime_simple))
+    Xhatprime_weighted <- embedprime_weighted$X[,1:dhatprime_weighted] %*% sqrt(diag(sprime_weighted[1:dhatprime_weighted], nrow=dhatprime_weighted, ncol=dhatprime_weighted))
     if (clusterMethod == 'GMM') {
-      model2 <- Mclust(Xhatprime, G, verbose = FALSE)
-      clusters <- getClusters(data.frame(model2$z))
+      model2_simple <- Mclust(Xhatprime_simple, G, verbose = FALSE)
+      model2_weighted <- Mclust(Xhatprime_weighted, G, verbose = FALSE)
+      clusters_simple <- getClusters(data.frame(model2_simple$z))
+      clusters_weighted <- getClusters(data.frame(model2_weighted$z))
     } else {
-      model2 <- kmeans(Xhatprime, centers)
-      clusters <- model2$cluster
+      model2_simple <- kmeans(Xhatprime_simple, centers)
+      model2_weighted <- kmeans(Xhatprime_weighted, centers)
+      clusters_simple <- model2_simple$cluster
+      clusters_weighted <- model2_weighted$cluster
     }
-    result$iterprime_simple <- embedprime$iter
-    result$mprodprime_simple <- embedprime$mprod
-    result$Xhatprime_simple <- Xhatprime
-    result$clusters_simple <- clusters
-  }
-
-  if (postAnalysis) {
-    cat('\n\n', 'Post Analysis using beta_weighted...')
-    if (link == 'logit') {
-      Yhat <- embedding$X[,1:dhat] %*% sqrt(diag(s[1:dhat], nrow=dhat, ncol=dhat))
-      Qhat <- Yhat %*% Ipq %*% t(Yhat)
-      if (check == 'BF') {
-        What <- logit(BFcheck(Qhat))
-      } else {
-        What <- logit(Removecheck(Qhat))
-      }
-      Aprime <- getAwithoutCovariates(What, betahat2, covariates)
-    } else {
-      Aprime <- getAwithoutCovariates(A, betahat2, covariates)
-    }
-    embedprime <- SpectralEmbedding(Aprime, dmax, maxit = maxit, work = work, tol = tol)
-    sprime_weighted <- embedprime$D
-    dhatprime <- dimselect(sprime_weighted)$elbow[1]
-    Xhatprime <- embedprime$X[,1:dhatprime] %*% sqrt(diag(sprime_weighted[1:dhatprime], nrow=dhatprime, ncol=dhatprime))
-    if (clusterMethod == 'GMM') {
-      model2 <- Mclust(Xhatprime, G, verbose = FALSE)
-      clusters <- getClusters(data.frame(model2$z))
-    } else {
-      model2 <- kmeans(Xhatprime, centers)
-      clusters <- model2$cluster
-    }
-    result$iterprime_weighted <- embedprime$iter
-    result$mprodprime_weighted <- embedprime$mprod
-    result$Xhatprime_weighted <- Xhatprime
-    result$clusters_weighted <- clusters
+    result$iterprime_simple <- embedprime_simple$iter
+    result$mprodprime_simple <- embedprime_simple$mprod
+    result$Xhatprime_simple <- Xhatprime_simple
+    result$clusters_simple <- clusters_simple
+    result$iterprime_weighted <- embedprime_weighted$iter
+    result$mprodprime_weighted <- embedprime_weighted$mprod
+    result$Xhatprime_weighted <- Xhatprime_weighted
+    result$clusters_weighted <- clusters_weighted
   }
 
   if (plot) {
-    pp1 <- scree(s, 'Screeplot (with Covariates)')
+    cols <- ncol(A)
+    temp1 <- eigs_sym(matrix(as.numeric(A), ncol = cols), dmax, 'LA')
+    s1 <- temp1$values
+    temp2 <- eigs_sym(matrix(as.numeric(A), ncol = cols), dmax, 'SA')
+    s2 <- temp2$values
+    tempdat <- data.frame(raw = c(s1,s2)) %>%
+      mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+      arrange(desc(s))
+    pp1 <- scree(tempdat$raw[1:dmax], 'Screeplot (with Covariates)')
     pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
     if (postAnalysis) {
-      pp3 <- scree(sprime_simple, 'Screeplot (without Covariates)')
-      result$pp3_simple <- pp3
+      cols <- ncol(Aprime_simple)
+      temp1 <- eigs_sym(matrix(as.numeric(Aprime_simple), ncol = cols), dmax, 'LA')
+      s1 <- temp1$values
+      temp2 <- eigs_sym(matrix(as.numeric(Aprime_simple), ncol = cols), dmax, 'SA')
+      s2 <- temp2$values
+      tempdat <- data.frame(raw = c(s1,s2)) %>%
+        mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+        arrange(desc(s))
+      pp3_simple <- scree(tempdat$raw[1:dmax], 'Screeplot (without Covariates)')
+      result$pp3_simple <- pp3_simple
+      cols <- ncol(Aprime_weighted)
+      temp1 <- eigs_sym(matrix(as.numeric(Aprime_weighted), ncol = cols), dmax, 'LA')
+      s1 <- temp1$values
+      temp2 <- eigs_sym(matrix(as.numeric(Aprime_weighted), ncol = cols), dmax, 'SA')
+      s2 <- temp2$values
+      tempdat <- data.frame(raw = c(s1,s2)) %>%
+        mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+        arrange(desc(s))
+      pp3_weighted <- scree(sprime_weighted, 'Screeplot (without Covariates)')
+      result$pp3_weighted <- pp3_weighted
     }
     multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))
     result$pp1 <- pp1
     result$pp2 <- pp2
   }
 
-  if (plot) {
-    pp1 <- scree(s, 'Screeplot (with Covariates)')
-    pp2 <- plotLatentPosition(Xhat, withCovariates = TRUE, dhat = dhat, covariates = covariates)
-    if (postAnalysis) {
-      pp3 <- scree(sprime_weighted, 'Screeplot (without Covariates)')
-      result$pp3_weighted <- pp3
-    }
-    multiplot(plotlist = pp2, cols = ceiling(length(pp2)/2))
-    result$pp1 <- pp1
-    result$pp2 <- pp2
-  }
 
   cat('\n****************************************************************************\n')
   return(result)
