@@ -33,7 +33,7 @@ A list containing the following:
 \describe{
 \item{\code{betahats}}{A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(betahats, mean)} to get the estimate of each beta.}
 \item{\code{bias}}{If \code{sd==TRUE}, A list containing all bias terms for \code{betahats} in the CLT. The length of the list equals to the number of covariates. Using \code{sapply(bias, mean)} to get the bias of each beta and using \code{sapply(betahats, mean) - sapply(bias, mean)} to get the unbiased estimate of each beta.}
-\item{\code{sd2s}}{If \code{sd==TRUE}, A list containing all variances of \code{betahats}. The length of the list equals to the number of covariates. Using \code{sapply(sd2s, mean)} to get the variance of each beta.}
+\item{\code{sd2s}}{If \code{sd==TRUE}, A list containing all variances of \code{betahats}. The length of the list equals to the number of covariates. Using \code{sapply(sd2s, mean)/n^2} to get the variance of each beta where \code{n} is the number of nodes.}
 \item{\code{...}}{If \code{sd==TRUE}, Lists containing all \code{psi}, \code{sigma2} and \code{covariances}. The length of the list equals to the number of covariates.}
 }
 }

@@ -20,7 +20,7 @@
 #' \item{`betahats`}{A list containing all estimated beta. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',betahats,pis), sum)} to get the estimate of each beta.}
 #' \item{`pis`}{A list containing all weight of each pair. The length of the list equals to the number of covariates.}
 #' \item{`bias`}{If \code{sd==TRUE}, A list containing all bias terms for `betahats` in the CLT. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',bias,pis), sum)} to get the bias of each beta and using \code{sapply(Map('*',betahats,pis), sum) - sapply(Map('*',bias,pis), sum)} to get the unbiased estimate of each beta.}
-#' \item{`sd2s`}{If \code{sd==TRUE}, A list containing all variances of `betahats`. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',sd2s,pis), sum)} to get the variance of each beta.}
+#' \item{`sd2s`}{If \code{sd==TRUE}, A list containing all variances of `betahats`. The length of the list equals to the number of covariates. Using \code{sapply(Map('*',sd2s,Map('*',pis,pis)), sum)/n^2} to get the variance of each beta where `n` is the number of nodes.}
 #' \item{`...`}{If \code{sd==TRUE}, Lists containing all `psi`, `sigma2` and `covariances`. The length of the list equals to the number of covariates.}
 #' }
 #'

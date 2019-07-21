@@ -198,12 +198,12 @@ GRDPGwithCovariates <- function(A, covariates, link = 'identity', clusterMethod 
   result1 <- estimatebeta(Xhat, muhats, Ipq, cov, covariates_block, clusters_cov, link, check, sd, rho)
   betahat1 <- sapply(result1$betahats, mean)
   betahat1_unbiased <- betahat1 - sapply(result1$bias, mean)
-  sd21 <- sapply(result1$sd2s, mean)
+  sd21 <- sapply(result1$sd2s, mean) / nrow(A)^2
 
   result2 <- estimatebeta2(Xhat, muhats, Ipq, cov, covariates, clusters_cov, link, check, sd, rho)
   betahat2 <- sapply(Map('*',result2$betahats,result2$pis), sum)
   betahat2_unbiased <- betahat2 - sapply(Map('*',result2$bias,result2$pis), sum)
-  sd22 <- sapply(Map('*',result2$sd2s,result2$pis), sum)
+  sd22 <- sapply(Map('*',result2$sd2s,Map('*',result2$pis,result2$pis)), sum) / nrow(A)^2
 
   result$BXhat <- BXhat
   result$betahat_simple <- betahat1

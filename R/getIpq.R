@@ -32,13 +32,14 @@ getIpq <- function(A, d, method = 'RSpectra') {
     if (length(s) < d) {
       stop("The length of `s` should be greater than `d`.")
     }
-    p <- which(s<abs(s[length(s)]))[1]
-    if (is.na(p)) {
-      Ipq <- diag(rep(1,d))
-    } else if (p > d) {
+    tempdat <- data.frame(raw = s) %>%
+      mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+      arrange(desc(s))
+    p <- sum(tempdat$raw[1:d]>0)
+    if (p == d) {
       Ipq <- diag(rep(1,d))
     } else {
-      Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+      Ipq <- diag(c(rep(1,p), rep(-1,d-p)))
     }
   } else {
     cols <- ncol(A)
@@ -46,18 +47,25 @@ getIpq <- function(A, d, method = 'RSpectra') {
     s1 <- temp1$values
     temp2 <- eigs_sym(matrix(as.numeric(A), ncol = cols), d, 'SA')
     s2 <- temp2$values
-    p <- which(s1<abs(s2[length(s2)]))[1]
-    if (is.na(p)) {
-      Ipq <- diag(rep(1,d))
-    } else if (p > d) {
+    tempdat <- data.frame(raw = c(s1,s2)) %>%
+      mutate(sign = ifelse(raw>0, 'positive', 'negative'), s = abs(raw)) %>%
+      arrange(desc(s))
+    p <- sum(tempdat$raw[1:d]>0)
+    if (p == d) {
       Ipq <- diag(rep(1,d))
     } else {
-      Ipq <- diag(c(rep(1,p-1), rep(-1, d-p+1)))
+      Ipq <- diag(c(rep(1,p), rep(-1,d-p)))
     }
   }
 
   return(Ipq)
 }
+
+
+
+
+
+
 
 
 
