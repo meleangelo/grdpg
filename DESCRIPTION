@@ -8,18 +8,23 @@ Description: Generate and estimate (G)RDPG with observed covariates to model the
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 Imports: 
-    dplyr, 
-    mclust, 
-    igraph, 
-    graphstats, 
+    dplyr,
+    mclust,
+    igraph,
+    graphstats,
     irlba,
     RSpectra,
-    grid, 
-    ggplot2
+    grid,
+    ggplot2,
+    Rcpp,
+    RcppArmadillo
 Suggests: 
     devtools, 
     knitr, 
     rmarkdown
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
